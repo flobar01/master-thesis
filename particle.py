@@ -41,13 +41,15 @@ class Particle:
         self.fitness = new_fitness
         entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos)
         self.history = np.append(self.history, entry)
-
+    #test function
     def fitness_update(self):
-        return self.circle_fitness()
-        #return -np.linalg.norm(self.pos)
+        return self.rosenbrock_fitness()
 
     def circle_fitness(self):
         fitness = 0
         for i in range(2):
             fitness += self.pos[i] * self.pos[i]
         return fitness
+
+    def rosenbrock_fitness(self):
+        return 100*(((self.pos[1] - (self.pos[0]**2))**2)+ (1-self.pos[0]) ** 2)

@@ -7,25 +7,25 @@ class PSO:
     def __init__(self):
         self.particles = []
         self.global_best = 10000
-        self.global_best_pos = None
+        self.global_best_pos = np.array([1000, 1000])
         self.global_best_index = 0
         self.generation = 0
 
 
-    def init_population(self):
+    def init_population(self, to_remove):
         idx = 0
+        poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
-            if idx == 900:
-                pos = np.array([0,0])
-            else:
-                pos = np.array([random.randint(1,10), random.randint(1,10)])
-            vel = np.array([0,0])
-            p = Particle(pos, vel, self, i)
-            self.particles.append(p)
-            if p.fitness < self.global_best:
-                self.global_best = p.fitness
-                self.global_best_pos = p.pos
-                self.global_best_index = idx
+            if i not in to_remove:
+                pos = poses[i]
+                #pos = np.array([random.randint(1,10), random.randint(1,10)])
+                vel = np.array([0,0])
+                p = Particle(pos, vel, self, i)
+                self.particles.append(p)
+                if p.fitness < self.global_best:
+                    self.global_best = p.fitness
+                    self.global_best_pos = p.pos
+                    self.global_best_index = idx
             idx += 1
         
     def update_step(self):
@@ -37,4 +37,5 @@ class PSO:
                 self.global_best_pos = p.pos
                 self.global_best_index = idx
         self.generation += 1
+        return self.global_best_pos
     
