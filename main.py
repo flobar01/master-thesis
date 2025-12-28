@@ -48,18 +48,14 @@ def run_pso(to_remove):
         if occurences[i] == 0:
             to_remove.append(i)
     if debug:
-        print(pso.global_best_pos)
-        print(pso.global_best)
+        print(f"{pso.global_best_pos} with {pso.global_best}")
         print(occurences)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
-        print(pso.particles[highest_occur].history[0].pos)
+        #print(pso.particles[highest_occur].history[0].pos)
+        print("overall steps = ", pso.overall_steps)
         print("--------")
         return to_remove
-        #for entry in best_part:
-            #print(entry.best_pos, entry.best_idx)
-        #for entry in pso.particles[highest_occur].history:
-        #print(entry.pos, entry.is_best)
 
 if __name__ == '__main__':
     pso = PSO()

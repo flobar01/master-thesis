@@ -10,6 +10,7 @@ class PSO:
         self.global_best_pos = np.array([1000, 1000])
         self.global_best_index = 0
         self.generation = 0
+        self.overall_steps = 0
 
 
     def init_population(self, to_remove):
@@ -26,6 +27,11 @@ class PSO:
                     self.global_best = p.fitness
                     self.global_best_pos = p.pos
                     self.global_best_index = idx
+            else:
+                pos = np.array([10000, 10000])
+                vel = np.array([0,0])
+                p = Particle(pos, vel, self, i, True)
+                self.particles.append(p)
             idx += 1
         
     def update_step(self):

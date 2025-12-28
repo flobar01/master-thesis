@@ -14,7 +14,7 @@ class HistoryEntry:
         self.is_best = is_best
 
 class Particle:
-    def __init__(self, pos, vel, pso, index):
+    def __init__(self, pos, vel, pso, index, stationary = False):
         self.pos            = pos
         self.vel            = vel
         self.index          = index
@@ -26,21 +26,24 @@ class Particle:
         self.history        = np.array([[]], dtype=HistoryEntry)
         entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos)
         self.history = np.append(self.history, entry)
+        self.stationary = stationary
     
     def update(self):
-        inertia = params.w*self.vel
-        cognitive = params.c1 * (self.personal_best - self.pos)
-        social = params.c2 * (self.pso.global_best_pos - self.pos)
-        new_vel = inertia + cognitive + social
-        self.pos = self.pos + new_vel
-        self.vel = new_vel
-        new_fitness = self.fitness_update()
-        if new_fitness < self.best_fitness:
-            self.personal_best = self.pos
-            self.best_fitness = new_fitness
-        self.fitness = new_fitness
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos)
-        self.history = np.append(self.history, entry)
+        if not self.stationary:
+            inertia = params.w*self.vel
+            cognitive = params.c1 * (self.personal_best - self.pos)
+            social = params.c2 * (self.pso.global_best_pos - self.pos)
+            new_vel = inertia + cognitive + social
+            self.pos = self.pos + new_vel
+            self.vel = new_vel
+            new_fitness = self.fitness_update()
+            if new_fitness < self.best_fitness:
+                self.personal_best = self.pos
+                self.best_fitness = new_fitness
+            self.fitness = new_fitness
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos)
+            self.history = np.append(self.history, entry)
+            self.pso.overall_steps += 1
     #test function
     def fitness_update(self):
         return self.rosenbrock_fitness()
