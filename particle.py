@@ -1,8 +1,9 @@
 from parameters import params
 import numpy as np
+import random
 
 class HistoryEntry:
-    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos):
+    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness):
         self.gen = gen
         self.pos = pos
         self.inertia = inertia
@@ -12,6 +13,9 @@ class HistoryEntry:
         self.index = index
         self.best_pos = best_pos
         self.is_best = is_best
+        self.phi1 = phi1
+        self.phi2 = phi2
+        self.fitness = fitness
 
 class Particle:
     def __init__(self, pos, vel, pso, index, stationary = False):
@@ -24,15 +28,20 @@ class Particle:
         self.best_pos       = np.array([])
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos)
+        self.composition    = {}
+        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
         self.history = np.append(self.history, entry)
         self.stationary = stationary
     
     def update(self):
         if not self.stationary:
             inertia = params.w*self.vel
-            cognitive = params.c1 * (self.personal_best - self.pos)
-            social = params.c2 * (self.pso.global_best_pos - self.pos)
+            phi1 = np.array([random.random(), random.random()])
+            phi2 = np.array([random.random(), random.random()])
+            phi1 = np.array([1,1])
+            phi2 = np.array([1,1])
+            cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
+            social = params.c2 * (self.pso.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
             self.pos = self.pos + new_vel
             self.vel = new_vel
@@ -41,7 +50,7 @@ class Particle:
                 self.personal_best = self.pos
                 self.best_fitness = new_fitness
             self.fitness = new_fitness
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos)
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness)
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
     #test function

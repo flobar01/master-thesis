@@ -18,8 +18,10 @@ class PSO:
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
-                pos = poses[i]
-                #pos = np.array([random.randint(1,10), random.randint(1,10)])
+                if len(to_remove) == 0:
+                    pos = np.array([random.randint(-10,10), random.randint(-10,10)])
+                else:
+                    pos = poses[i]
                 vel = np.array([0,0])
                 p = Particle(pos, vel, self, i)
                 self.particles.append(p)

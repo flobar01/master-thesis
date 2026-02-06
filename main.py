@@ -5,26 +5,44 @@ from os import environ
 import math
 from parameters import params
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+environ['PYGAME_DETECT_AVX2'] = '1'
 
 import pygame
-
+MAX_TO_REMOVE = 3
 def distance(first, second):
     return math.sqrt((first[0] - second[0])**2 + (first[1] - second[1])**2)
 
-def run_pso(to_remove):
+def start_pos_analysis(occurences, to_remove, histories, start_pos):
+    for i in range(len(start_pos)):
+        if i not in to_remove:
+            print(f"{start_pos[i]} with ({histories[i][0].fitness})")
+    print("------------")
+    for i in range(len(start_pos)):
+        if i in to_remove:
+            print(f"part {i} {start_pos[i]} with ({histories[i][0].fitness})")
+
+def end_pos_analysis(occurences, to_remove, histories, end_pos):
+    for i in range(len(end_pos)):
+        print(f"part {i} {end_pos[i]} with ({histories[i][-1].fitness})")
+
+def run_pso(to_remove, first_run):
     pso = PSO()
     pso.init_population(to_remove)
-    histories = []
-    start_pos = []
+    histories  = []
+    start_pos  = []
+    end_pos    = []
     occurences = {}
-    to_remove = []
+    to_remove  = []
     for i in range(params.popsize):
         occurences[i] = 0
     steps = 0
     stepsWithoutImprove = 0
     last_global_best = np.array([1000,1000])
     current_global_best = np.array([0,0])
-    while steps < 30 and stepsWithoutImprove < 6:
+    while steps < 30:# and stepsWithoutImprove < 6:
+        #impact aus start-position herausfindbar
+        #impact mit finaler population (part mit bester fitness der mit meisten einfluss)
+        # gruppenbildung(später) 
         last_global_best = current_global_best
         current_global_best = pso.update_step()
         if distance(last_global_best, current_global_best) < 0.0000001:
@@ -37,33 +55,38 @@ def run_pso(to_remove):
     for part in pso.particles:
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
+        end_pos.append(part.history[-1].pos)
     for hist in histories:
         for entry in hist:
             if entry.best_idx in occurences:
                 occurences[entry.best_idx] = occurences[entry.best_idx]+1
             else:
                 occurences.update({entry.best_idx: 1})
-    #np.save("saves/start_pos", start_pos)
-    for i in range(len(occurences)):
-        if occurences[i] == 0:
-            to_remove.append(i)
+    if first_run and debug:
+        for i in range(len(occurences)):
+            if occurences[i] == 0 and len(to_remove) < MAX_TO_REMOVE:
+                to_remove.append(i)
+        #start_pos_analysis(occurences, to_remove, histories, start_pos)
+        np.save("saves/start_pos", start_pos)
+        end_pos_analysis(occurences, to_remove, histories, end_pos)
+
     if debug:
-        print(f"{pso.global_best_pos} with {pso.global_best}")
+        print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         print(occurences)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
         #print(pso.particles[highest_occur].history[0].pos)
         print("overall steps = ", pso.overall_steps)
-        print("--------")
-        return to_remove
+        print("-------------------------------------------------------------------------")
+    return to_remove
 
 if __name__ == '__main__':
     pso = PSO()
     INTERP_FRAMES = 20
     debug = True
-    graphical = not debug
-    to_remove = run_pso([])
-    run_pso(to_remove)
+    graphical = False
+    to_remove = run_pso([], True)
+    run_pso(to_remove, False)
 
 
     if graphical:
@@ -87,13 +110,12 @@ if __name__ == '__main__':
             screen.fill((0,0,0))
             pso.update_step()
             for p in pso.particles:
-                x = p.prev_pos[0] * (1 - t) + p.next_pos[0] * t
-                y = p.prev_pos[1] * (1 - t) + p.next_pos[1] * t
-                pygame.draw.circle(screen, (0, 255, 255), (int(p.pos[0])/10*WIDTH + WIDTH/2, int(p.pos[1])/10*HEIGHT + HEIGHT/2 ), 4)
-            pygame.draw.circle(screen, (255, 0, 0), (WIDTH/2,HEIGHT/2), 6)
+                pygame.draw.circle(screen, (0, 255, 255), (p.pos[0]/10*WIDTH + WIDTH/2, p.pos[1]/10*HEIGHT + HEIGHT/2 ), 4)
+            pygame.draw.circle(screen, (255, 0, 0), (1/10*WIDTH + WIDTH/2, 1/10*HEIGHT + HEIGHT/2), 6)
             pygame.display.flip()
             frame += 1
-            clock.tick(30)
+            clock.tick(5)
             if frame > INTERP_FRAMES:
                 frame = 0
         pygame.quit()
+
