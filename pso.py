@@ -1,7 +1,8 @@
-from particle import Particle
+from particle import Particle, FitnessHistoryEntry
 from parameters import params
 import random
 import numpy as np
+
 
 class PSO:
     def __init__(self):
@@ -11,6 +12,7 @@ class PSO:
         self.global_best_index = 0
         self.generation = 0
         self.overall_steps = 0
+        self.history = np.array([], dtype=FitnessHistoryEntry)
 
 
     def init_population(self, to_remove):
@@ -40,10 +42,14 @@ class PSO:
         for idx in range(len(self.particles)):
             p = self.particles[idx]
             p.update()
-            if p.fitness < self.global_best:
-                self.global_best = p.fitness
-                self.global_best_pos = p.pos
-                self.global_best_index = idx
         self.generation += 1
         return self.global_best_pos
-    
+
+    def getCurrentMeanFitness(self):
+        fitness_sum = 0
+        amount = 0
+        for i in self.particles:
+            if not i.stationary:
+                fitness_sum += i.fitness
+                amount += 1
+        return fitness_sum / amount

@@ -68,7 +68,7 @@ def run_pso(to_remove, first_run):
                 to_remove.append(i)
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
         np.save("saves/start_pos", start_pos)
-        end_pos_analysis(occurences, to_remove, histories, end_pos)
+        #end_pos_analysis(occurences, to_remove, histories, end_pos)
 
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
@@ -76,6 +76,8 @@ def run_pso(to_remove, first_run):
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
         #print(pso.particles[highest_occur].history[0].pos)
+        for i in pso.history:
+            print(i.gen)
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
     return to_remove

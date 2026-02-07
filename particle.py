@@ -2,6 +2,13 @@ from parameters import params
 import numpy as np
 import random
 
+class FitnessHistoryEntry:
+    def __init__(self, global_change, local_change, fitness, generation):
+        self.global_change = global_change
+        self.local_change = local_change
+        self.fitness = fitness
+        self.gen = generation
+
 class HistoryEntry:
     def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness):
         self.gen = gen
@@ -28,7 +35,7 @@ class Particle:
         self.best_pos       = np.array([])
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        self.composition    = {}
+        self.composition    = {"test": 1}
         entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
         self.history = np.append(self.history, entry)
         self.stationary = stationary
@@ -47,8 +54,16 @@ class Particle:
             self.vel = new_vel
             new_fitness = self.fitness_update()
             if new_fitness < self.best_fitness:
+                global_change = False
                 self.personal_best = self.pos
                 self.best_fitness = new_fitness
+                if new_fitness < self.pso.global_best:
+                    global_change = True
+                    self.pso.global_best = new_fitness
+                    self.pso.global_best_pos = self.pos
+                    self.pso.global_best_idx = self.index
+                historyEntry = FitnessHistoryEntry(global_change, True, self.pso.getCurrentMeanFitness(), self.pso.generation)
+                self.pso.history = np.append(self.pso.history, historyEntry)
             self.fitness = new_fitness
             entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness)
             self.history = np.append(self.history, entry)
