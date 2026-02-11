@@ -42,6 +42,10 @@ class PSO:
         for idx in range(len(self.particles)):
             p = self.particles[idx]
             p.update()
+            if p.fitness < self.global_best:
+                self.global_best = p.fitness
+                self.global_best_pos = p.pos
+                self.global_best_index = idx
         self.generation += 1
         return self.global_best_pos
 

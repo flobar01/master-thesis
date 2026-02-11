@@ -59,9 +59,9 @@ class Particle:
                 self.best_fitness = new_fitness
                 if new_fitness < self.pso.global_best:
                     global_change = True
-                    self.pso.global_best = new_fitness
-                    self.pso.global_best_pos = self.pos
-                    self.pso.global_best_idx = self.index
+                    #self.pso.global_best = new_fitness
+                    #self.pso.global_best_pos = self.pos
+                    #self.pso.global_best_idx = self.index
                 historyEntry = FitnessHistoryEntry(global_change, True, self.pso.getCurrentMeanFitness(), self.pso.generation)
                 self.pso.history = np.append(self.pso.history, historyEntry)
             self.fitness = new_fitness
