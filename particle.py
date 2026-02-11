@@ -52,23 +52,11 @@ class Particle:
             new_vel = inertia + cognitive + social
             self.pos = self.pos + new_vel
             self.vel = new_vel
-            new_fitness = self.fitness_update()
-            if new_fitness < self.best_fitness:
-                global_change = False
-                self.personal_best = self.pos
-                self.best_fitness = new_fitness
-                if new_fitness < self.pso.global_best:
-                    global_change = True
-                    #self.pso.global_best = new_fitness
-                    #self.pso.global_best_pos = self.pos
-                    #self.pso.global_best_idx = self.index
-                historyEntry = FitnessHistoryEntry(global_change, True, self.pso.getCurrentMeanFitness(), self.pso.generation)
-                self.pso.history = np.append(self.pso.history, historyEntry)
-            self.fitness = new_fitness
+            self.check_fitness()
             entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness)
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
-    #test function
+    
     def fitness_update(self):
         return self.rosenbrock_fitness()
 
@@ -80,3 +68,15 @@ class Particle:
 
     def rosenbrock_fitness(self):
         return 100*(((self.pos[1] - (self.pos[0]**2))**2)+ (1-self.pos[0]) ** 2)
+
+    def check_fitness(self):
+        new_fitness = self.fitness_update()
+        if new_fitness < self.best_fitness:
+            global_change = False
+            self.personal_best = self.pos
+            self.best_fitness = new_fitness
+            if new_fitness < self.pso.global_best:
+                global_change = True
+            historyEntry = FitnessHistoryEntry(global_change, True, self.pso.getCurrentMeanFitness(), self.pso.generation)
+            self.pso.history = np.append(self.pso.history, historyEntry)
+        self.fitness = new_fitness
