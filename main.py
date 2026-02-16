@@ -77,8 +77,8 @@ def run_pso(to_remove, first_run):
         best_part = pso.particles[pso.global_best_index].history
         #print(pso.particles[highest_occur].history[0].pos)
         for i in pso.history:
-            if i.global_change:
-                print(f"change in gen {i.gen} global change = {i.global_change}, local change = {i.local_change}, fitness = {i.fitness}")
+            #if i.global_change:
+            print(f"change in gen {i.gen} global change = {i.global_change}, local change = {i.local_change}, fitness = {i.fitness}, ratio = {i.fitness_global_change}")
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
     return to_remove

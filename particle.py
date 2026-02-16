@@ -1,13 +1,8 @@
 from parameters import params
 import numpy as np
 import random
+import math
 
-class FitnessHistoryEntry:
-    def __init__(self, global_change, local_change, fitness, generation):
-        self.global_change = global_change
-        self.local_change = local_change
-        self.fitness = fitness
-        self.gen = generation
 
 class HistoryEntry:
     def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness):
@@ -59,6 +54,7 @@ class Particle:
     
     def fitness_update(self):
         return self.rosenbrock_fitness()
+        #return self.ackley_fitness()
 
     def circle_fitness(self):
         fitness = 0
@@ -69,14 +65,17 @@ class Particle:
     def rosenbrock_fitness(self):
         return 100*(((self.pos[1] - (self.pos[0]**2))**2)+ (1-self.pos[0]) ** 2)
 
+    def ackley_fitness(self):
+        return -20 * math.exp(-2*math.sqrt(0.5 *(self.pos[0]**2 + self.pos[1]**2))) - math.exp(0.5*(math.cos(2*math.pi*self.pos[0]) + math.cos(2*math.pi*self.pos[1]))) + math.e + 20
+
     def check_fitness(self):
         new_fitness = self.fitness_update()
         if new_fitness < self.best_fitness:
             global_change = False
             self.personal_best = self.pos
             self.best_fitness = new_fitness
+            self.pso.local_change = True
             if new_fitness < self.pso.global_best:
                 global_change = True
-            historyEntry = FitnessHistoryEntry(global_change, True, self.pso.getCurrentMeanFitness(), self.pso.generation)
-            self.pso.history = np.append(self.pso.history, historyEntry)
+                self.pso.global_change = True
         self.fitness = new_fitness
