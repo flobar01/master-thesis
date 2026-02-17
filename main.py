@@ -4,6 +4,7 @@ from pso import PSO
 from os import environ
 import math
 from parameters import params
+import pandas as pd
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 environ['PYGAME_DETECT_AVX2'] = '1'
 
@@ -76,9 +77,14 @@ def run_pso(to_remove, first_run):
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
         #print(pso.particles[highest_occur].history[0].pos)
+        entries = []
         for i in pso.history:
             #if i.global_change:
-            print(f"change in gen {i.gen} global change = {i.global_change}, local change = {i.local_change}, fitness = {i.fitness}, ratio = {i.fitness_global_change}")
+            entry = [i.gen, i.global_change, i.local_change, i.fitness, i.global_best_ratio, i.fitness_ratio]
+            entries.append(entry)
+            #print(f"gen {i.gen} g = {i.global_change}, l = {i.local_change}, fitness = {i.fitness}, ratio = {i.global_best_ratio}, fitness_change = {i.fitness_ratio}")
+        df = pd.DataFrame(entries, columns=["Gen", "Global", "Local", "Mean Fitness", "best ratio", "Overall Ratio"])
+        print(df)
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
     return to_remove

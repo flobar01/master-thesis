@@ -4,12 +4,13 @@ import random
 import numpy as np
 
 class FitnessHistoryEntry:
-    def __init__(self, global_change, local_change, fitness, generation, fitness_global_change):
+    def __init__(self, global_change, local_change, fitness, generation, global_best_ratio, fitness_ratio):
         self.global_change = global_change
         self.local_change = local_change
         self.fitness = fitness
-        self.fitness_global_change = fitness_global_change
+        self.global_best_ratio = global_best_ratio
         self.gen = generation
+        self.fitness_ratio = fitness_ratio
 
 class PSO:
     def __init__(self):
@@ -19,7 +20,8 @@ class PSO:
         self.global_best_index = 0
         self.generation = 0
         self.global_change = False
-        self.fitness_global_change = 0
+        self.global_best_ratio = 0
+        self.global_fitness = 0
         self.local_change = False
         self.overall_steps = 0
         self.history = np.array([], dtype=FitnessHistoryEntry)
@@ -47,8 +49,9 @@ class PSO:
                 p = Particle(pos, vel, self, i, True)
                 self.particles.append(p)
             idx += 1
-        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.fitness_global_change)
+        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, 0)
         self.history = np.append(self.history, historyEntry)
+        self.global_fitness = self.getCurrentMeanFitness()
         self.generation += 1  
         
     def update_step(self):
@@ -56,12 +59,13 @@ class PSO:
             p = self.particles[idx]
             p.update()
             if p.fitness < self.global_best:
-                self.fitness_global_change = self.global_best / p.fitness
+                self.global_best_ratio = self.global_best / p.fitness
                 self.global_best = p.fitness
                 self.global_best_pos = p.pos
                 self.global_best_index = idx
-        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.fitness_global_change)
-        self.fitness_global_change = 0
+        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, self.global_fitness/self.getCurrentMeanFitness())
+        self.global_fitness = self.getCurrentMeanFitness()
+        self.global_best_ratio = float(1.000000)
         self.history = np.append(self.history, historyEntry)
         self.global_change = False
         self.local_change = False
