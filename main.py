@@ -79,11 +79,11 @@ def run_pso(to_remove, first_run):
         #print(pso.particles[highest_occur].history[0].pos)
         entries = []
         for i in pso.history:
-            #if i.global_change:
-            entry = [i.gen, i.global_change, i.local_change, i.fitness, i.global_best_ratio, i.fitness_ratio]
-            entries.append(entry)
+            if i.global_change:
+                entry = [i.gen, i.global_change, i.local_change, i.fitness, i.global_best_ratio, i.fitness_ratio, i.global_improvement]
+                entries.append(entry)
             #print(f"gen {i.gen} g = {i.global_change}, l = {i.local_change}, fitness = {i.fitness}, ratio = {i.global_best_ratio}, fitness_change = {i.fitness_ratio}")
-        df = pd.DataFrame(entries, columns=["Gen", "Global", "Local", "Mean Fitness", "best ratio", "Overall Ratio"])
+        df = pd.DataFrame(entries, columns=["Gen", "Global", "Local", "Mean Fitness", "best ratio", "Overall Ratio", "Improvement to beginning"])
         print(df)
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")

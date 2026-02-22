@@ -47,11 +47,28 @@ class Particle:
             new_vel = inertia + cognitive + social
             self.pos = self.pos + new_vel
             self.vel = new_vel
+            self.clamp()
             self.check_fitness()
             entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness)
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
-    
+
+    def clamp(self):
+        if self.pos[0] < -params.bounds:
+            self.pos[0] = -params.bounds
+            self.vel = np.array([0,0])
+        if self.pos[1] < -params.bounds:
+            self.pos[1] = -params.bounds
+            self.vel = np.array([0,0])
+        if self.pos[0] > params.bounds:
+            self.pos[0] = params.bounds
+            self.vel = np.array([0,0])
+        if self.pos[1] > params.bounds:
+            self.pos[1] = params.bounds
+            self.vel = np.array([0,0])
+        
+
+
     def fitness_update(self):
         return self.rosenbrock_fitness()
         #return self.ackley_fitness()
