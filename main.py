@@ -33,21 +33,25 @@ def run_pso(to_remove, first_run):
     start_pos  = []
     end_pos    = []
     occurences = {}
+    occurences1 = {}
+    fitness_improvements = {}
+    norm_fitness_improvs = {}
+    all_fitness_improvs = []
     to_remove  = []
     for i in range(params.popsize):
         occurences[i] = 0
+        occurences1[i] = 0
     steps = 0
     stepsWithoutImprove = 0
     last_global_best = np.array([1000,1000])
     current_global_best = np.array([0,0])
-    while steps < 30:# and stepsWithoutImprove < 6:
+    while steps < params.iterations:#and stepsWithoutImprove < 6:
         #impact aus start-position herausfindbar
         #impact mit finaler population (part mit bester fitness der mit meisten einfluss)
         # gruppenbildung(später) 
         last_global_best = current_global_best
         current_global_best = pso.update_step()
         if distance(last_global_best, current_global_best) < 0.0000001:
-            distance(last_global_best, current_global_best)
             stepsWithoutImprove += 1
         else:
             stepsWithoutImprove = 0
@@ -57,12 +61,26 @@ def run_pso(to_remove, first_run):
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
         end_pos.append(part.history[-1].pos)
-    for hist in histories:
-        for entry in hist:
-            if entry.best_idx in occurences:
-                occurences[entry.best_idx] = occurences[entry.best_idx]+1
-            else:
-                occurences.update({entry.best_idx: 1})
+
+    for i in range(params.iterations):
+        for part in pso.particles:
+            if len(part.history) > 2:
+                history = part.history[i]
+                if history.best_idx in occurences1:
+                    occurences1[history.best_idx] = occurences1[history.best_idx]+1
+                else:
+                    occurences1.update({history.best_idx: 1})
+                if history.best_idx in fitness_improvements:
+                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement * history.gen
+                else:
+                    fitness_improvements.update({history.best_idx: history.fitness_improvement * history.gen})
+        total_improvement = sum(fitness_improvements.values())
+        if total_improvement > 0:
+            for key in fitness_improvements.keys():
+                norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
+        all_fitness_improvs.append(norm_fitness_improvs)
+        norm_fitness_improvs = {}
+
     if first_run and debug:
         for i in range(len(occurences)):
             if occurences[i] == 0 and len(to_remove) < MAX_TO_REMOVE:
@@ -70,10 +88,14 @@ def run_pso(to_remove, first_run):
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
         np.save("saves/start_pos", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
-
+    total_improvement = sum(fitness_improvements.values())
+    for key in fitness_improvements.keys():
+        norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
-        print(occurences)
+        print(occurences1)
+        print(len(all_fitness_improvs))
+        print(norm_fitness_improvs)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
         #print(pso.particles[highest_occur].history[0].pos)
@@ -84,17 +106,17 @@ def run_pso(to_remove, first_run):
                 entries.append(entry)
             #print(f"gen {i.gen} g = {i.global_change}, l = {i.local_change}, fitness = {i.fitness}, ratio = {i.global_best_ratio}, fitness_change = {i.fitness_ratio}")
         df = pd.DataFrame(entries, columns=["Gen", "Global", "Local", "Mean Fitness", "best ratio", "Overall Ratio", "Improvement to beginning"])
-        print(df)
+        #print(df)
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
-    return to_remove
+    return to_remove, all_fitness_improvs
 
 if __name__ == '__main__':
     pso = PSO()
     INTERP_FRAMES = 20
     debug = True
-    graphical = False
-    to_remove = run_pso([], True)
+    graphical = True
+    to_remove, improvs = run_pso([], True)
     run_pso(to_remove, False)
 
 
@@ -110,7 +132,7 @@ if __name__ == '__main__':
         clock = pygame.time.Clock()
 
         running = True
-        while running:
+        while pso.generation < 29:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -119,7 +141,11 @@ if __name__ == '__main__':
             screen.fill((0,0,0))
             pso.update_step()
             for p in pso.particles:
-                pygame.draw.circle(screen, (0, 255, 255), (p.pos[0]/10*WIDTH + WIDTH/2, p.pos[1]/10*HEIGHT + HEIGHT/2 ), 4)
+                if p.index in improvs[pso.generation].keys():
+                    pygame.draw.circle(screen, (0, 255, 255), (p.pos[0]/10*WIDTH + WIDTH/2, p.pos[1]/10*HEIGHT + HEIGHT/2 ), 4)
+                if p.index not in improvs[pso.generation].keys():
+                    pygame.draw.circle(screen, (0, 255, 0), (p.pos[0]/10*WIDTH + WIDTH/2, p.pos[1]/10*HEIGHT + HEIGHT/2 ), 4)
+
             pygame.draw.circle(screen, (255, 0, 0), (1/10*WIDTH + WIDTH/2, 1/10*HEIGHT + HEIGHT/2), 6)
             pygame.display.flip()
             frame += 1

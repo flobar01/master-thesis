@@ -5,7 +5,7 @@ import math
 
 
 class HistoryEntry:
-    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness):
+    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, fitness_improv=0):
         self.gen = gen
         self.pos = pos
         self.inertia = inertia
@@ -18,6 +18,7 @@ class HistoryEntry:
         self.phi1 = phi1
         self.phi2 = phi2
         self.fitness = fitness
+        self.fitness_improvement = fitness_improv
 
 class Particle:
     def __init__(self, pos, vel, pso, index, stationary = False):
@@ -30,7 +31,6 @@ class Particle:
         self.best_pos       = np.array([])
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        self.composition    = {"test": 1}
         entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
         self.history = np.append(self.history, entry)
         self.stationary = stationary
@@ -49,7 +49,8 @@ class Particle:
             self.vel = new_vel
             self.clamp()
             self.check_fitness()
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness)
+            last_fitness = self.history[-1].fitness
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, last_fitness - self.fitness)
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 
