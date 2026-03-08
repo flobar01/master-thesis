@@ -115,10 +115,13 @@ def run_pso(to_remove, first_run):
     total_improvement = sum(fitness_improvements.values())
     for key in fitness_improvements.keys():
         norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
+    
+    sorted_norm_improvs = dict(sorted(norm_fitness_improvs.items(), key=lambda item: item[1]))
+    
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         #print(occurences1)
-        print(norm_fitness_improvs)
+        print(sorted_norm_improvs)
         print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
@@ -133,26 +136,38 @@ def run_pso(to_remove, first_run):
         #print(df)
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
-    return to_remove, pso
+    return to_remove, pso, all_fitness_improvs
 
 if __name__ == '__main__':
     debug = True
     graphical = True
-    to_remove, pso = run_pso([], True)
+    to_remove, pso, all_fitness_improvs = run_pso([], True)
     #run_pso(to_remove, False)
+    plt.ion()
+    fig, ax = plt.subplots()
 
     if graphical:
         for i in range(params.iterations):
             x_pos = []
             y_pos = []
+            improvs = []
+            ax.clear()
             for part in pso.particles:
                 current = part.history[i].pos
                 x_pos.append(current[0])
                 y_pos.append(current[1])
-            plt.clf()
-            plt.scatter(x_pos, y_pos)
-            plt.title(f"Generation {i}")
-            plt.xlim(min(x_pos),max(x_pos))
-            plt.ylim(min(y_pos),max(y_pos))
-            plt.show()
+                current_improvs = all_fitness_improvs[i]
+                ax.text(current[0] + 0.01, current[1] + 0.01, str(part.index), fontsize=9)
+                if part.index in current_improvs:
+                    improvs.append(all_fitness_improvs[i][part.index])
+                else:
+                    improvs.append(0)
+            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn_r")
+            ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
+            ax.set_title(f"Generation {i}")
+            ax.set_xlim(-10,10)
+            ax.set_ylim(-10,10)
+            plt.draw()
             input("Press Enter for next generation...")
+        plt.ioff()
+        plt.show()
