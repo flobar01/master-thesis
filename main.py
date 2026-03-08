@@ -4,7 +4,9 @@ from pso import PSO
 from os import environ
 import math
 from parameters import params
-import pandas as pd
+import pandas as pd 
+import matplotlib.pyplot as plt 
+
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 environ['PYGAME_DETECT_AVX2'] = '1'
 
@@ -131,48 +133,26 @@ def run_pso(to_remove, first_run):
         #print(df)
         print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
-    return to_remove, all_fitness_improvs
+    return to_remove, pso
 
 if __name__ == '__main__':
-    pso = PSO()
-    INTERP_FRAMES = 20
     debug = True
-    graphical = False
-    to_remove, improvs = run_pso([], True)
+    graphical = True
+    to_remove, pso = run_pso([], True)
     #run_pso(to_remove, False)
 
-
     if graphical:
-        pso = PSO()
-        debug = False
-        pso.init_population([])
-        pygame.init()
-        WIDTH = 800
-        HEIGHT = 600
-        frame = 0
-        screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        clock = pygame.time.Clock()
-
-        running = True
-        while pso.generation < 29:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            t = frame / INTERP_FRAMES   # between 0 and 1
-            screen.fill((0,0,0))
-            pso.update_step()
-            for p in pso.particles:
-                if p.index in improvs[pso.generation].keys():
-                    pygame.draw.circle(screen, (0, 255, 255), (p.pos[0]/10*WIDTH + WIDTH/2, p.pos[1]/10*HEIGHT + HEIGHT/2 ), 4)
-                if p.index not in improvs[pso.generation].keys():
-                    pygame.draw.circle(screen, (0, 255, 0), (p.pos[0]/10*WIDTH + WIDTH/2, p.pos[1]/10*HEIGHT + HEIGHT/2 ), 4)
-
-            pygame.draw.circle(screen, (255, 0, 0), (1/10*WIDTH + WIDTH/2, 1/10*HEIGHT + HEIGHT/2), 6)
-            pygame.display.flip()
-            frame += 1
-            clock.tick(5)
-            if frame > INTERP_FRAMES:
-                frame = 0
-        pygame.quit()
-
+        for i in range(params.iterations):
+            x_pos = []
+            y_pos = []
+            for part in pso.particles:
+                current = part.history[i].pos
+                x_pos.append(current[0])
+                y_pos.append(current[1])
+            plt.clf()
+            plt.scatter(x_pos, y_pos)
+            plt.title(f"Generation {i}")
+            plt.xlim(min(x_pos),max(x_pos))
+            plt.ylim(min(y_pos),max(y_pos))
+            plt.show()
+            input("Press Enter for next generation...")
