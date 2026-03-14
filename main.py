@@ -24,6 +24,16 @@ def end_pos_analysis(occurences, to_remove, histories, end_pos):
     for i in range(len(end_pos)):
         print(f"part {i} {end_pos[i]} with ({histories[i][-1].fitness})")
 
+def range_conversion(dictionary):
+    oldMin = min(dictionary.values())
+    oldMax = max(dictionary.values())
+    newMin = -1
+    newMax = 1
+    oldRange = (oldMax - oldMin)
+    newRange = (newMax - newMin)
+    for key in dictionary.keys():
+        dictionary[key] = (((dictionary[key]- oldMin) * newRange) / oldRange) + newMin
+
 def run_pso(to_remove, first_run):
     pso = PSO()
     pso.init_population(to_remove)
@@ -63,10 +73,10 @@ def run_pso(to_remove, first_run):
 
     for i in range(params.iterations):
         fitness_particles = {}
+        current_improvs = {}
         for part in pso.particles:
             if len(part.history) > 2:
                 history = part.history[i]
-
                 fitness_particles[part.index] = history.fitness
                 if history.best_idx in occurences1:
                     occurences1[history.best_idx] = occurences1[history.best_idx]+1
@@ -81,8 +91,19 @@ def run_pso(to_remove, first_run):
                     fitness_improvements[part.index] = fitness_improvements[part.index] + history.fitness_improvement * params.c1
                 else:
                     fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
-
-
+                
+                if history.best_idx in current_improvs:
+                    current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * params.c2
+                else:
+                    current_improvs.update({history.best_idx: history.fitness_improvement*params.c2})
+                if part.index in current_improvs:
+                    current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
+                else:
+                    current_improvs.update({part.index: history.fitness_improvement * params.c1})
+        if i > 0:
+            range_conversion(current_improvs)
+        all_fitness_improvs.append(current_improvs)
+        current_improvs = {}
         sorted_particles = dict(sorted(fitness_particles.items(), key=lambda item: item[1]))
         rank = 1
         temp_ranks = {}
@@ -94,11 +115,6 @@ def run_pso(to_remove, first_run):
             temp_ranks.update({x: rank})
             rank += 1
         all_ranks.append(temp_ranks)
-        total_improvement = sum(fitness_improvements.values())
-        if total_improvement > 0:
-            for key in fitness_improvements.keys():
-                norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
-        all_fitness_improvs.append(norm_fitness_improvs)
         norm_fitness_improvs = {}
 
     sorted_ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
@@ -163,9 +179,10 @@ if __name__ == '__main__':
             global_best_history.append(0)
         global_rank_history.append(current_ranks[pso.global_best_index])
     x = range(params.iterations)
-    #plt.plot(x, best_improvs_history, label = "improvs")
-    #plt.plot(x, global_best_history, label="global")
-    plt.plot(x, global_rank_history, label="global_rank")
+    plt.plot(x, best_improvs_history, label = "improvs")
+    plt.plot(x, global_best_history, label="global")
+    plt.ylim(-1,1)
+    #plt.plot(x, global_rank_history, label="global_rank")
     plt.legend()
     plt.show()
     if graphical:
