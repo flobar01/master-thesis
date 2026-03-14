@@ -7,10 +7,6 @@ from parameters import params
 import pandas as pd 
 import matplotlib.pyplot as plt 
 
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-environ['PYGAME_DETECT_AVX2'] = '1'
-
-import pygame
 MAX_TO_REMOVE = 3
 def distance(first, second):
     return math.sqrt((first[0] - second[0])**2 + (first[1] - second[1])**2)
@@ -39,6 +35,7 @@ def run_pso(to_remove, first_run):
     fitness_improvements = {}
     norm_fitness_improvs = {}
     all_fitness_improvs = []
+    all_ranks = []
     ranks = {}
     to_remove  = []
     for i in range(params.popsize):
@@ -59,7 +56,6 @@ def run_pso(to_remove, first_run):
         else:
             stepsWithoutImprove = 0
         steps += 1
-    print("steps = ", steps)
     for part in pso.particles:
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
@@ -78,24 +74,26 @@ def run_pso(to_remove, first_run):
                     occurences1.update({history.best_idx: 1})
 
                 if history.best_idx in fitness_improvements:
-                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement * 0.5
+                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement * params.c2
                 else:
-                    fitness_improvements.update({history.best_idx: history.fitness_improvement * 0.5})
+                    fitness_improvements.update({history.best_idx: history.fitness_improvement * params.c2})
                 if part.index in fitness_improvements:
-                    fitness_improvements[part.index] = fitness_improvements[part.index] + history.fitness_improvement * 0.5
+                    fitness_improvements[part.index] = fitness_improvements[part.index] + history.fitness_improvement * params.c1
                 else:
-                    fitness_improvements.update({part.index: history.fitness_improvement * 0.5})
+                    fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
 
 
         sorted_particles = dict(sorted(fitness_particles.items(), key=lambda item: item[1]))
         rank = 1
+        temp_ranks = {}
         for x in sorted_particles.keys():
             if x not in ranks:
                 ranks.update({x: rank})
             else:
                 ranks[x] += rank
+            temp_ranks.update({x: rank})
             rank += 1
-
+        all_ranks.append(temp_ranks)
         total_improvement = sum(fitness_improvements.values())
         if total_improvement > 0:
             for key in fitness_improvements.keys():
@@ -125,6 +123,7 @@ def run_pso(to_remove, first_run):
         print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
+        best_improv = list(sorted_norm_improvs)[-1]
         #print(pso.particles[highest_occur].history[0].pos)
         entries = []
         for i in pso.history:
@@ -134,19 +133,44 @@ def run_pso(to_remove, first_run):
             #print(f"gen {i.gen} g = {i.global_change}, l = {i.local_change}, fitness = {i.fitness}, ratio = {i.global_best_ratio}, fitness_change = {i.fitness_ratio}")
         df = pd.DataFrame(entries, columns=["Gen", "Global", "Local", "Mean Fitness", "best ratio", "Overall Ratio", "Improvement to beginning"])
         #print(df)
-        print("overall steps = ", pso.overall_steps)
+        #print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
-    return to_remove, pso, all_fitness_improvs
+    return to_remove, pso, all_fitness_improvs, all_ranks, best_improv
 
 if __name__ == '__main__':
     debug = True
-    graphical = True
-    to_remove, pso, all_fitness_improvs = run_pso([], True)
-    #run_pso(to_remove, False)
-    plt.ion()
-    fig, ax = plt.subplots()
+    graphical = False
+    #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
+    #impact anpassen -> verringern mit zunehmender generation
+    #bestes anfangspartikel mal rausnehmen aus evaluation
+    #impact (alle anzeigen aber unwichtige grau)
 
+    to_remove, pso, all_fitness_improvs, all_ranks, best_improvs = run_pso([], True)
+    best_improvs_history = []
+    global_best_history = []
+    global_rank_history = []
+    #run_pso(to_remove, False)
+    for i in range(params.iterations):
+        current_improvs = all_fitness_improvs[i]
+        current_ranks = all_ranks[i]
+        if best_improvs in current_improvs:
+            best_improvs_history.append(current_improvs[best_improvs])
+        else:
+            best_improvs_history.append(0)
+        if pso.global_best_index in current_improvs:
+            global_best_history.append(current_improvs[pso.global_best_index])
+        else:
+            global_best_history.append(0)
+        global_rank_history.append(current_ranks[pso.global_best_index])
+    x = range(params.iterations)
+    #plt.plot(x, best_improvs_history, label = "improvs")
+    #plt.plot(x, global_best_history, label="global")
+    plt.plot(x, global_rank_history, label="global_rank")
+    plt.legend()
+    plt.show()
     if graphical:
+        plt.ion()
+        fig, ax = plt.subplots()
         for i in range(params.iterations):
             x_pos = []
             y_pos = []
@@ -157,7 +181,7 @@ if __name__ == '__main__':
                 x_pos.append(current[0])
                 y_pos.append(current[1])
                 current_improvs = all_fitness_improvs[i]
-                ax.text(current[0] + 0.01, current[1] + 0.01, str(part.index), fontsize=9)
+                ax.text(current[0], current[1], str(part.index), fontsize=9)
                 if part.index in current_improvs:
                     improvs.append(all_fitness_improvs[i][part.index])
                 else:

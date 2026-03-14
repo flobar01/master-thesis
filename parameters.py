@@ -1,7 +1,7 @@
 class params:
-    w       = 0.7
-    c1      = 1.6
-    c2      = 1.6
+    w       = 0.5
+    c1      = 1.0
+    c2      = 1.4
     popsize = 20
     bounds  = 1000
     iterations = 40
