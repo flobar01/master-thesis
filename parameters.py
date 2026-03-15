@@ -4,4 +4,4 @@ class params:
     c2      = 1.4
     popsize = 20
     bounds  = 10
-    iterations = 40
+    iterations = 25

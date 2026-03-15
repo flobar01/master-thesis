@@ -6,6 +6,8 @@ import math
 from parameters import params
 import pandas as pd 
 import matplotlib.pyplot as plt 
+import matplotlib.colors as mcolors
+
 
 MAX_TO_REMOVE = 3
 def distance(first, second):
@@ -101,9 +103,11 @@ def run_pso(to_remove, first_run):
                 else:
                     current_improvs.update({part.index: history.fitness_improvement * params.c1})
         if i > 0:
-            range_conversion(current_improvs)
+            total_improvement = sum(map(abs,current_improvs.values()))
+            #range_conversion(current_improvs)
+            for key in current_improvs.keys():
+                current_improvs[key] = current_improvs[key] / total_improvement
         all_fitness_improvs.append(current_improvs)
-        current_improvs = {}
         sorted_particles = dict(sorted(fitness_particles.items(), key=lambda item: item[1]))
         rank = 1
         temp_ranks = {}
@@ -126,17 +130,16 @@ def run_pso(to_remove, first_run):
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
         np.save("saves/start_pos", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
-    total_improvement = sum(fitness_improvements.values())
+    total_improvement = sum(map(abs,fitness_improvements.values()))
     for key in fitness_improvements.keys():
         norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
-    
     sorted_norm_improvs = dict(sorted(norm_fitness_improvs.items(), key=lambda item: item[1]))
     
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         #print(occurences1)
         print(sorted_norm_improvs)
-        print(sorted_ranks)
+        #print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
         best_improv = list(sorted_norm_improvs)[-1]
@@ -155,39 +158,42 @@ def run_pso(to_remove, first_run):
 
 if __name__ == '__main__':
     debug = True
-    graphical = False
+    graphical = True
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
     #impact (alle anzeigen aber unwichtige grau)
 
     to_remove, pso, all_fitness_improvs, all_ranks, best_improvs = run_pso([], True)
-    best_improvs_history = []
-    global_best_history = []
+    improvs_array = {}
     global_rank_history = []
+    for key in all_fitness_improvs[1].keys():
+        improvs_array.update({key: []})
     #run_pso(to_remove, False)
     for i in range(params.iterations):
         current_improvs = all_fitness_improvs[i]
         current_ranks = all_ranks[i]
-        if best_improvs in current_improvs:
-            best_improvs_history.append(current_improvs[best_improvs])
-        else:
-            best_improvs_history.append(0)
-        if pso.global_best_index in current_improvs:
-            global_best_history.append(current_improvs[pso.global_best_index])
-        else:
-            global_best_history.append(0)
+        for key in current_improvs.keys():
+            improvs_array[key].append(current_improvs[key])
         global_rank_history.append(current_ranks[pso.global_best_index])
+
     x = range(params.iterations)
-    plt.plot(x, best_improvs_history, label = "improvs")
-    plt.plot(x, global_best_history, label="global")
-    plt.ylim(-1,1)
-    #plt.plot(x, global_rank_history, label="global_rank")
-    plt.legend()
-    plt.show()
+    grey_color = "#00000010"
+    for key in improvs_array.keys():
+        if key != best_improvs and key != pso.global_best_index:
+            plt.plot(x, improvs_array[key], color=grey_color)
+    if not graphical:
+        plt.plot(x,improvs_array[best_improvs], label = "improvs")
+        plt.plot(x, improvs_array[pso.global_best_index], label="global")
+        plt.ylim(-1,1)
+        #plt.plot(x, global_rank_history, label="global_rank")
+        plt.legend()
+        plt.show()
+
     if graphical:
         plt.ion()
         fig, ax = plt.subplots()
+        norm = mcolors.Normalize(vmin=-0.1, vmax=0.4)
         for i in range(params.iterations):
             x_pos = []
             y_pos = []
@@ -195,15 +201,17 @@ if __name__ == '__main__':
             ax.clear()
             for part in pso.particles:
                 current = part.history[i].pos
+                best_idx = part.history[i].best_idx
                 x_pos.append(current[0])
                 y_pos.append(current[1])
                 current_improvs = all_fitness_improvs[i]
-                ax.text(current[0], current[1], str(part.index), fontsize=9)
+                if part.index == best_idx:
+                    ax.text(current[0], current[1], str(part.index), fontsize=9)
                 if part.index in current_improvs:
-                    improvs.append(all_fitness_improvs[i][part.index])
+                    improvs.append(current_improvs[part.index])
                 else:
                     improvs.append(0)
-            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn_r")
+            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn_r", norm=norm)
             ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
             ax.set_title(f"Generation {i}")
             ax.set_xlim(-10,10)
