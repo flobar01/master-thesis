@@ -11,7 +11,10 @@ import matplotlib.colors as mcolors
 
 MAX_TO_REMOVE = 3
 def distance(first, second):
-    return math.sqrt((first[0] - second[0])**2 + (first[1] - second[1])**2)
+    dist = 0
+    for i in range(params.dimensions):
+        dist = dist + ((first[i] - second[i])**2)
+    return math.sqrt(dist)
 
 def start_pos_analysis(occurences, to_remove, histories, start_pos):
     for i in range(len(start_pos)):
@@ -158,7 +161,7 @@ def run_pso(to_remove, first_run):
 
 if __name__ == '__main__':
     debug = True
-    graphical = True
+    graphical = False
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
@@ -178,16 +181,17 @@ if __name__ == '__main__':
         global_rank_history.append(current_ranks[pso.global_best_index])
 
     x = range(params.iterations)
-    grey_color = "#00000010"
-    for key in improvs_array.keys():
-        if key != best_improvs and key != pso.global_best_index:
-            plt.plot(x, improvs_array[key], color=grey_color)
     if not graphical:
-        plt.plot(x,improvs_array[best_improvs], label = "improvs")
-        plt.plot(x, improvs_array[pso.global_best_index], label="global")
-        plt.ylim(-1,1)
+        fig, ax = plt.subplots()
+        grey_color = "#00000010"
+        for key in improvs_array.keys():
+            if key != best_improvs and key != pso.global_best_index:
+                plt.plot(x, improvs_array[key], color=grey_color)
+        ax.plot(x,improvs_array[best_improvs], label = "improvs")
+        ax.plot(x, improvs_array[pso.global_best_index], label="global")
+        ax.set_ylim(-1,1)
         #plt.plot(x, global_rank_history, label="global_rank")
-        plt.legend()
+        ax.legend()
         plt.show()
 
     if graphical:

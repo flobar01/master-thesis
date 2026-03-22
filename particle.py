@@ -38,10 +38,12 @@ class Particle:
     def update(self):
         if not self.stationary:
             inertia = params.w*self.vel
-            phi1 = np.array([random.random(), random.random()])
-            phi2 = np.array([random.random(), random.random()])
-            phi1 = np.array([1,1])
-            phi2 = np.array([1,1])
+            #phi1 = np.array([random.random(), random.random()])
+            #phi2 = np.array([random.random(), random.random()])
+            phi1 = np.empty(params.dimensions)
+            phi1.fill(1)
+            phi2 = np.empty(params.dimensions)
+            phi2.fill(1)
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.pso.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
@@ -55,23 +57,19 @@ class Particle:
             self.pso.overall_steps += 1
 
     def clamp(self):
-        if self.pos[0] < -params.bounds:
-            self.pos[0] = -params.bounds
-            self.vel = np.array([0,0])
-        if self.pos[1] < -params.bounds:
-            self.pos[1] = -params.bounds
-            self.vel = np.array([0,0])
-        if self.pos[0] > params.bounds:
-            self.pos[0] = params.bounds
-            self.vel = np.array([0,0])
-        if self.pos[1] > params.bounds:
-            self.pos[1] = params.bounds
-            self.vel = np.array([0,0])
+        for i in range(params.dimensions):
+            if self.pos[i] < -params.bounds:
+                self.pos[i] = -params.bounds
+                self.vel = np.empty(params.dimensions)
+            if self.pos[i] > params.bounds:
+                self.pos[i] = params.bounds
+                self.vel = np.empty(params.dimensions)
         
 
 
     def fitness_update(self):
-        #return self.rosenbrock_fitness()
+        return self.rosenbrock_fitness()
+        return self.pos[0]
         return self.ackley_fitness()
 
     def circle_fitness(self):

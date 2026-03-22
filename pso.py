@@ -17,7 +17,9 @@ class PSO:
     def __init__(self):
         self.particles = []
         self.global_best = 100000000
-        self.global_best_pos = np.array([1000, 1000])
+        self.global_best_pos = np.array([])
+        for i in range(params.dimensions):
+            self.global_best_pos = np.append(self.global_best_pos, [1000])
         self.global_best_index = 0
         self.first_global_overall_fitness = 0
         self.generation = 0
@@ -35,10 +37,14 @@ class PSO:
         for i in range(params.popsize):
             if i not in to_remove:
                 if len(to_remove) == 0:
-                    pos = np.array([random.randint(-10,10), random.randint(-10,10)])
+                    pos = np.array([])
+                    for dim in range(params.dimensions):
+                        rand = random.randint(-10,10)
+                        pos = np.append(pos,rand)
                 else:
                     pos = poses[i]
-                vel = np.array([0,0])
+                vel = np.empty(params.dimensions)
+                vel.fill(0)
                 p = Particle(pos, vel, self, i)
                 self.particles.append(p)
                 if p.fitness < self.global_best:
