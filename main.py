@@ -48,6 +48,7 @@ def run_pso(to_remove, first_run):
     occurences = {}
     occurences1 = {}
     fitness_improvements = {}
+    fitness_improvements1 = {}
     norm_fitness_improvs = {}
     all_fitness_improvs = []
     all_ranks = []
@@ -90,12 +91,16 @@ def run_pso(to_remove, first_run):
 
                 if history.best_idx in fitness_improvements:
                     fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement * params.c2
+                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx] * 0.4) + history.fitness_improvement * params.c2
                 else:
                     fitness_improvements.update({history.best_idx: history.fitness_improvement * params.c2})
+                    fitness_improvements1.update({history.best_idx: history.fitness_improvement * params.c2})
                 if part.index in fitness_improvements:
-                    fitness_improvements[part.index] = fitness_improvements[part.index] + history.fitness_improvement * params.c1
+                    fitness_improvements[part.index] = (fitness_improvements[part.index] * 0.4) + history.fitness_improvement * params.c1
+                    fitness_improvements1[part.index] = (fitness_improvements1[part.index] * 0.4) + history.fitness_improvement * params.c1
                 else:
                     fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
+                    fitness_improvements1.update({part.index: history.fitness_improvement * params.c1})
                 
                 if history.best_idx in current_improvs:
                     current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * params.c2
@@ -123,6 +128,7 @@ def run_pso(to_remove, first_run):
             rank += 1
         all_ranks.append(temp_ranks)
         norm_fitness_improvs = {}
+        norm_fitness_improvs1 = {}
 
     sorted_ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
 
@@ -134,14 +140,19 @@ def run_pso(to_remove, first_run):
         np.save("saves/start_pos", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
     total_improvement = sum(map(abs,fitness_improvements.values()))
+    total_improvement1 = sum(map(abs,fitness_improvements1.values()))
     for key in fitness_improvements.keys():
         norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
+        norm_fitness_improvs1[key] = float(fitness_improvements1[key] / total_improvement1)
+
     sorted_norm_improvs = dict(sorted(norm_fitness_improvs.items(), key=lambda item: item[1]))
+    sorted_norm_improvs1 = dict(sorted(norm_fitness_improvs1.items(), key=lambda item: item[1]))
     
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         #print(occurences1)
         print(sorted_norm_improvs)
+        print(sorted_norm_improvs1)
         #print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
@@ -161,7 +172,7 @@ def run_pso(to_remove, first_run):
 
 if __name__ == '__main__':
     debug = True
-    graphical = False
+    graphical = True
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
@@ -207,16 +218,23 @@ if __name__ == '__main__':
                 current = part.history[i].pos
                 best_idx = part.history[i].best_idx
                 x_pos.append(current[0])
-                y_pos.append(current[1])
+                #print(current[0])
+                if len(current) > 1:
+                    y_pos.append(current[1])
+                else:
+                    y_pos.append(part.index)
                 current_improvs = all_fitness_improvs[i]
-                if part.index == best_idx:
+                if len(current) > 1:
                     ax.text(current[0], current[1], str(part.index), fontsize=9)
+                else:
+                    ax.text(current[0], part.index, str(part.index), fontsize=9)
                 if part.index in current_improvs:
                     improvs.append(current_improvs[part.index])
                 else:
                     improvs.append(0)
-            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn_r", norm=norm)
-            ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
+            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn", norm=norm)
+            if len(current) > 1:
+                ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
             ax.set_title(f"Generation {i}")
             ax.set_xlim(-10,10)
             ax.set_ylim(-10,10)

@@ -18,9 +18,13 @@ class PSO:
         self.particles = []
         self.global_best = 100000000
         self.global_best_pos = np.array([])
+        self.global_best_temp_pos = np.array([])
         for i in range(params.dimensions):
             self.global_best_pos = np.append(self.global_best_pos, [1000])
+            self.global_best_temp_pos = np.append(self.global_best_pos, [1000])
+            
         self.global_best_index = 0
+        self.global_best_temp_index = 0
         self.first_global_overall_fitness = 0
         self.generation = 0
         self.global_change = False
@@ -33,14 +37,25 @@ class PSO:
 
     def init_population(self, to_remove):
         idx = 0
+        made_up = False
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
                 if len(to_remove) == 0:
                     pos = np.array([])
                     for dim in range(params.dimensions):
-                        rand = random.randint(-10,10)
-                        pos = np.append(pos,rand)
+                        if not made_up:
+                            rand = random.randint(-10,10)
+                            pos = np.append(pos, rand)
+                        else:
+                            if i == 0:
+                                pos = np.array([-5, 3])
+                            else:
+                                pos = np.array([-3, i/2-10])
+                        '''if i == 0:
+                            pos = np.append(pos,-1)
+                        else:
+                            pos = np.append(pos, 0)'''
                 else:
                     pos = poses[i]
                 vel = np.empty(params.dimensions)
@@ -49,8 +64,8 @@ class PSO:
                 self.particles.append(p)
                 if p.fitness < self.global_best:
                     self.global_best = p.fitness
-                    self.global_best_pos = p.pos
-                    self.global_best_index = idx
+                    self.global_best_temp_pos = p.pos
+                    self.global_best_temp_index = idx
                     self.global_change = True
             else:
                 pos = np.array([10000, 10000])
@@ -58,6 +73,8 @@ class PSO:
                 p = Particle(pos, vel, self, i, True)
                 self.particles.append(p)
             idx += 1
+        self.global_best_pos = self.global_best_temp_pos
+        self.global_best_index = self.global_best_temp_index
         self.first_global_overall_fitness = self.getCurrentMeanFitness()
         historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio)
         self.history = np.append(self.history, historyEntry)
@@ -71,8 +88,10 @@ class PSO:
             if p.fitness < self.global_best:
                 self.global_best_ratio = self.global_best / p.fitness
                 self.global_best = p.fitness
-                self.global_best_pos = p.pos
-                self.global_best_index = idx
+                self.global_best_temp_pos = p.pos
+                self.global_best_temp_index = idx
+        self.global_best_pos = self.global_best_temp_pos
+        self.global_best_index = self.global_best_temp_index
         historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, self.global_fitness/self.getCurrentMeanFitness(), self.first_global_overall_fitness/self.getCurrentMeanFitness())
         self.global_fitness = self.getCurrentMeanFitness()
         self.global_best_ratio = float(1.000000)
