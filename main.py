@@ -96,7 +96,7 @@ def run_pso(to_remove, first_run):
                     fitness_improvements.update({history.best_idx: history.fitness_improvement * params.c2})
                     fitness_improvements1.update({history.best_idx: history.fitness_improvement * params.c2})
                 if part.index in fitness_improvements:
-                    fitness_improvements[part.index] = (fitness_improvements[part.index] * 0.4) + history.fitness_improvement * params.c1
+                    fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
                     fitness_improvements1[part.index] = (fitness_improvements1[part.index] * 0.4) + history.fitness_improvement * params.c1
                 else:
                     fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
@@ -172,7 +172,7 @@ def run_pso(to_remove, first_run):
 
 if __name__ == '__main__':
     debug = True
-    graphical = True
+    graphical = False
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
@@ -200,7 +200,7 @@ if __name__ == '__main__':
                 plt.plot(x, improvs_array[key], color=grey_color)
         ax.plot(x,improvs_array[best_improvs], label = "improvs")
         ax.plot(x, improvs_array[pso.global_best_index], label="global")
-        ax.set_ylim(-1,1)
+        ax.set_ylim(-0.75,0.75)
         #plt.plot(x, global_rank_history, label="global_rank")
         ax.legend()
         plt.show()
