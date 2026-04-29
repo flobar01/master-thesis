@@ -151,7 +151,10 @@ def run_pso(to_remove, first_run):
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         #print(occurences1)
+        print("-------------------------------")
         print(sorted_norm_improvs)
+        print("---------------")
+        print("========= with decreasing =========")
         print(sorted_norm_improvs1)
         #print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
@@ -180,15 +183,18 @@ if __name__ == '__main__':
 
     to_remove, pso, all_fitness_improvs, all_ranks, best_improvs = run_pso([], True)
     improvs_array = {}
+    ranks_array = {}
     global_rank_history = []
     for key in all_fitness_improvs[1].keys():
         improvs_array.update({key: []})
+        ranks_array.update({key: []})
     #run_pso(to_remove, False)
     for i in range(params.iterations):
         current_improvs = all_fitness_improvs[i]
         current_ranks = all_ranks[i]
         for key in current_improvs.keys():
             improvs_array[key].append(current_improvs[key])
+            ranks_array[key].append(current_ranks[key])
         global_rank_history.append(current_ranks[pso.global_best_index])
 
     x = range(params.iterations)
@@ -197,10 +203,13 @@ if __name__ == '__main__':
         grey_color = "#00000010"
         for key in improvs_array.keys():
             if key != best_improvs and key != pso.global_best_index:
-                plt.plot(x, improvs_array[key], color=grey_color)
-        ax.plot(x,improvs_array[best_improvs], label = "improvs")
-        ax.plot(x, improvs_array[pso.global_best_index], label="global")
-        ax.set_ylim(-0.75,0.75)
+                #plt.plot(x, improvs_array[key], color=grey_color)
+                plt.plot(x, ranks_array[key], color=grey_color)
+        #ax.plot(x,improvs_array[best_improvs], label = "improvs")
+        #ax.plot(x, improvs_array[pso.global_best_index], label="global")
+        ax.plot(x, ranks_array[best_improvs], label = "improvs")
+        ax.plot(x, ranks_array[pso.global_best_index], label="global")
+        #ax.set_ylim(-0.75,0.75)
         #plt.plot(x, global_rank_history, label="global_rank")
         ax.legend()
         plt.show()
