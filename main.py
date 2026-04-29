@@ -7,7 +7,8 @@ from parameters import params
 import pandas as pd 
 import matplotlib.pyplot as plt 
 import matplotlib.colors as mcolors
-
+import matplotlib.animation as animation
+import seaborn as sns
 
 MAX_TO_REMOVE = 3
 def distance(first, second):
@@ -196,38 +197,54 @@ if __name__ == '__main__':
             improvs_array[key].append(current_improvs[key])
             ranks_array[key].append(current_ranks[key])
         global_rank_history.append(current_ranks[pso.global_best_index])
-
+    
+        
     x = range(params.iterations)
     if not graphical:
         fig, ax = plt.subplots()
         grey_color = "#00000010"
-        for key in improvs_array.keys():
-            if key != best_improvs and key != pso.global_best_index:
+        data_ranks = pd.DataFrame(ranks_array)
+        print(data_ranks)
+        #for key in improvs_array.keys():
+            #if key != best_improvs and key != pso.global_best_index:
                 #plt.plot(x, improvs_array[key], color=grey_color)
-                plt.plot(x, ranks_array[key], color=grey_color)
+                #plt.plot(x, ranks_array[key], color=grey_color)
         #ax.plot(x,improvs_array[best_improvs], label = "improvs")
         #ax.plot(x, improvs_array[pso.global_best_index], label="global")
-        ax.plot(x, ranks_array[best_improvs], label = "improvs")
-        ax.plot(x, ranks_array[pso.global_best_index], label="global")
+        
+        #ax.plot(x, ranks_array[best_improvs], label = "improvs")
+        #ax.plot(x, ranks_array[pso.global_best_index], label="global")
+        sns.lineplot(data=data_ranks)
         #ax.set_ylim(-0.75,0.75)
         #plt.plot(x, global_rank_history, label="global_rank")
         ax.legend()
+        plt.savefig("parameters_own.png")
         plt.show()
 
     if graphical:
-        plt.ion()
+        #plt.ion()
         fig, ax = plt.subplots()
         norm = mcolors.Normalize(vmin=-0.1, vmax=0.4)
-        for i in range(params.iterations):
+        ax.set_xlim(-10,10)
+        ax.set_ylim(-10,10)
+        ax.clear()
+        '''for i in range(params.iterations):
             x_pos = []
             y_pos = []
             improvs = []
+            plt.draw()
+            update(i)
+            input("Press Enter for next generation...")'''
+
+        def update(i):
             ax.clear()
+            x_pos = []
+            y_pos = []
+            improvs = []
             for part in pso.particles:
                 current = part.history[i].pos
                 best_idx = part.history[i].best_idx
                 x_pos.append(current[0])
-                #print(current[0])
                 if len(current) > 1:
                     y_pos.append(current[1])
                 else:
@@ -241,13 +258,15 @@ if __name__ == '__main__':
                     improvs.append(current_improvs[part.index])
                 else:
                     improvs.append(0)
-            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn", norm=norm)
-            if len(current) > 1:
-                ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
-            ax.set_title(f"Generation {i}")
             ax.set_xlim(-10,10)
             ax.set_ylim(-10,10)
-            plt.draw()
-            input("Press Enter for next generation...")
-        plt.ioff()
+            ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn", norm=norm)
+            ax.set_title(f"Generation {i}")
+            if len(current) > 1:
+                ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
+
+
+        ani = animation.FuncAnimation(fig, update, frames=25, interval=500, repeat=False)
+        #ani.save("parameters_own.mp4", writer="ffmpeg", dpi=100)
+        #plt.ioff()
         plt.show()
