@@ -52,6 +52,7 @@ def run_pso(to_remove, first_run):
     fitness_improvements1 = {}
     norm_fitness_improvs = {}
     all_fitness_improvs = []
+    all_fitness_improvs1 = []
     all_ranks = []
     ranks = {}
     to_remove  = []
@@ -81,6 +82,7 @@ def run_pso(to_remove, first_run):
     for i in range(params.iterations):
         fitness_particles = {}
         current_improvs = {}
+        current_improvs1 = {}
         for part in pso.particles:
             if len(part.history) > 2:
                 history = part.history[i]
@@ -105,18 +107,25 @@ def run_pso(to_remove, first_run):
                 
                 if history.best_idx in current_improvs:
                     current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * params.c2
+                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] * 0.4 + history.fitness_improvement * params.c2
                 else:
                     current_improvs.update({history.best_idx: history.fitness_improvement*params.c2})
+                    current_improvs1.update({history.best_idx: history.fitness_improvement*params.c2})
                 if part.index in current_improvs:
                     current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
+                    current_improvs1[part.index] = current_improvs1[part.index]*0.4 + history.fitness_improvement * params.c1
                 else:
                     current_improvs.update({part.index: history.fitness_improvement * params.c1})
+                    current_improvs1.update({part.index: history.fitness_improvement * params.c1})
         if i > 0:
             total_improvement = sum(map(abs,current_improvs.values()))
+            total_improvement1 = sum(map(abs,current_improvs1.values()))
             #range_conversion(current_improvs)
             for key in current_improvs.keys():
                 current_improvs[key] = current_improvs[key] / total_improvement
+                current_improvs1[key] = current_improvs1[key] / total_improvement1
         all_fitness_improvs.append(current_improvs)
+        all_fitness_improvs1.append(current_improvs1)
         sorted_particles = dict(sorted(fitness_particles.items(), key=lambda item: item[1]))
         rank = 1
         temp_ranks = {}
@@ -172,17 +181,17 @@ def run_pso(to_remove, first_run):
         #print(df)
         #print("overall steps = ", pso.overall_steps)
         print("-------------------------------------------------------------------------")
-    return to_remove, pso, all_fitness_improvs, all_ranks, best_improv
+    return to_remove, pso, all_fitness_improvs, all_ranks, best_improv, all_fitness_improvs1
 
 if __name__ == '__main__':
     debug = True
-    graphical = False
+    graphical = True
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
     #impact (alle anzeigen aber unwichtige grau)
 
-    to_remove, pso, all_fitness_improvs, all_ranks, best_improvs = run_pso([], True)
+    to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, all_fitness_improvs1 = run_pso([], True)
     improvs_array = {}
     ranks_array = {}
     global_rank_history = []
@@ -191,7 +200,7 @@ if __name__ == '__main__':
         ranks_array.update({key: []})
     #run_pso(to_remove, False)
     for i in range(params.iterations):
-        current_improvs = all_fitness_improvs[i]
+        current_improvs = all_fitness_improvs1[i]
         current_ranks = all_ranks[i]
         for key in current_improvs.keys():
             improvs_array[key].append(current_improvs[key])
@@ -201,24 +210,26 @@ if __name__ == '__main__':
         
     x = range(params.iterations)
     if not graphical:
-        fig, ax = plt.subplots()
         grey_color = "#00000010"
-        data_ranks = pd.DataFrame(ranks_array)
-        print(data_ranks)
-        #for key in improvs_array.keys():
-            #if key != best_improvs and key != pso.global_best_index:
-                #plt.plot(x, improvs_array[key], color=grey_color)
-                #plt.plot(x, ranks_array[key], color=grey_color)
-        #ax.plot(x,improvs_array[best_improvs], label = "improvs")
-        #ax.plot(x, improvs_array[pso.global_best_index], label="global")
+        data_ranks = pd.DataFrame.from_dict(ranks_array)
+        data_improvs = pd.DataFrame.from_dict(improvs_array)
+        standard_pal = sns.color_palette()
+        pal = {index: standard_pal[0] if index == best_improvs else standard_pal[1] if index == pso.global_best_index else grey_color for index in data_ranks.columns}
         
-        #ax.plot(x, ranks_array[best_improvs], label = "improvs")
-        #ax.plot(x, ranks_array[pso.global_best_index], label="global")
-        sns.lineplot(data=data_ranks)
+        ax = sns.lineplot(data_ranks, palette=pal, dashes=False)
         #ax.set_ylim(-0.75,0.75)
-        #plt.plot(x, global_rank_history, label="global_rank")
-        ax.legend()
-        plt.savefig("parameters_own.png")
+        handles, labels = ax.get_legend_handles_labels()
+        to_remove = {str(x) if x != best_improvs and x != pso.global_best_index else "" for x in data_ranks.columns}
+        for line, label in zip(ax.lines, labels):
+            if label in to_remove:
+                line.set_linewidth(1)
+        filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
+        #print(to_remove)
+        handles, labels = zip(*filtered)
+        ax.legend(handles, labels)
+        ax.set_title(f"w = {params.w}, c1: {params.c1}, c2: {params.c2}")
+        ax.set_xlabel("Generation")
+        #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
         plt.show()
 
     if graphical:
@@ -263,10 +274,11 @@ if __name__ == '__main__':
             ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn", norm=norm)
             ax.set_title(f"Generation {i}")
             if len(current) > 1:
-                ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
+                #ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
+                ax.scatter(1,1, color="blue")
 
 
         ani = animation.FuncAnimation(fig, update, frames=25, interval=500, repeat=False)
-        #ani.save("parameters_own.mp4", writer="ffmpeg", dpi=100)
+        #ani.save("parameters_20.mp4", writer="ffmpeg", dpi=100)
         #plt.ioff()
         plt.show()

@@ -59,7 +59,7 @@ class Particle:
 
     def check_vel(self, vel):
         norm = np.linalg.norm(vel)
-        vel = vel if norm <= 50 else vel * 50 / norm
+        vel = vel if norm <= 5 else vel * 5 / norm
         return vel
 
     def clamp(self):
