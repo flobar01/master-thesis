@@ -185,7 +185,7 @@ def run_pso(to_remove, first_run):
 
 if __name__ == '__main__':
     debug = True
-    graphical = True
+    graphical = False
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
@@ -227,9 +227,9 @@ if __name__ == '__main__':
         #print(to_remove)
         handles, labels = zip(*filtered)
         ax.legend(handles, labels)
-        ax.set_title(f"w = {params.w}, c1: {params.c1}, c2: {params.c2}")
+        ax.set_title(f"w = {params.w}, c1: {params.c1}, c2: {params.c2}, best: {pso.global_best_index}")
         ax.set_xlabel("Generation")
-        #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
+        plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
         plt.show()
 
     if graphical:
@@ -279,6 +279,7 @@ if __name__ == '__main__':
 
 
         ani = animation.FuncAnimation(fig, update, frames=25, interval=500, repeat=False)
-        #ani.save("parameters_20.mp4", writer="ffmpeg", dpi=100)
+        save_name = f"vis_{params.w}_{params.c1}_{params.c2}.mp4"
+        ani.save(save_name, writer="ffmpeg", dpi=100)
         #plt.ioff()
         plt.show()

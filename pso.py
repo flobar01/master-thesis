@@ -37,7 +37,7 @@ class PSO:
 
     def init_population(self, to_remove):
         idx = 0
-        made_up = False
+        made_up = True
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
@@ -45,7 +45,7 @@ class PSO:
                     pos = np.array([])
                     for dim in range(params.dimensions):
                         if not made_up:
-                            rand = random.randint(-10,10)
+                            rand = random.randint(-params.bounds, params.bounds)
                             pos = np.append(pos, rand)
                         else:
                             if i == 0:

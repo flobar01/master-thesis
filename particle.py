@@ -47,10 +47,10 @@ class Particle:
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.pso.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
-            new_vel = self.check_vel(new_vel)
+            #new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
-            self.clamp()
+            #self.clamp()
             self.check_fitness()
             last_fitness = self.history[-1].fitness
             entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, last_fitness - self.fitness)
@@ -59,7 +59,8 @@ class Particle:
 
     def check_vel(self, vel):
         norm = np.linalg.norm(vel)
-        vel = vel if norm <= 5 else vel * 5 / norm
+        max_v = params.bounds / 2
+        vel = vel if norm <= max_v else vel * max_v / norm
         return vel
 
     def clamp(self):
@@ -75,8 +76,8 @@ class Particle:
 
     def fitness_update(self):
         return self.rosenbrock_fitness()
-        return self.pos[0]
         return self.ackley_fitness()
+        return self.pos[0]
 
     def circle_fitness(self):
         fitness = 0
