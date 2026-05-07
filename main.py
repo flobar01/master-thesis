@@ -1,6 +1,7 @@
 from particle import Particle
 import numpy as np
 from pso import PSO
+from pso_ring import PSO_Ring
 from os import environ
 import math
 from parameters import params
@@ -191,6 +192,11 @@ if __name__ == '__main__':
     #bestes anfangspartikel mal rausnehmen aus evaluation
     #impact (alle anzeigen aber unwichtige grau)
 
+    pso = PSO_Ring()
+    pso.init_population([])
+    for i in range(2):
+        pso.update_step()
+    pass
     to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, all_fitness_improvs1 = run_pso([], True)
     improvs_array = {}
     ranks_array = {}

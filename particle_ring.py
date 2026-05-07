@@ -29,9 +29,12 @@ class Particle:
         self.personal_best  = pos
         self.best_fitness   = self.fitness
         self.best_pos       = np.array([])
-        self.global_best_pos = np.array([])
+        self.global_best_pos = pos
         self.global_best_index = index
         self.global_best_fitness = 100000
+        self.global_best_pos_temp = pos
+        self.global_best_index_temp = index
+        self.global_best_fitness_temp = 100000
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
         entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
