@@ -42,8 +42,12 @@ class PSO_Ring:
                 distances.update({idx: self.distance(self.particles[id].pos, self.particles[idx].pos)})
         distances = dict(sorted(distances.items(), key=lambda item: item[1]))
         ids = list(distances.keys())
-        best_idx = min(self.particles[id].global_best_fitness, min(self.particles[ids[0]].global_best_fitness, self.particles[ids[1]].global_best_fitness))
-        return best_idx
+        best_fitness = min(self.particles[id].global_best_fitness, min(self.particles[ids[0]].global_best_fitness, self.particles[ids[1]].global_best_fitness))
+        if best_fitness == self.particles[ids[0]].global_best_fitness:
+            return ids[0]
+        if best_fitness == self.particles[ids[1]].global_best_fitness:
+            return ids[1]
+        return id
         
 
     def distance(self, first, second):
@@ -98,7 +102,7 @@ class PSO_Ring:
             p = self.particles[idx]
             p.update()
             best_neighbor = self.particles[self.getlbestFitness(idx)]
-            if best_neighbor.global_best_fitness > p.global_best_fitness:
+            if best_neighbor.global_best_fitness < p.global_best_fitness:
                 p.global_best_fitness_temp = best_neighbor.global_best_fitness
                 p.global_best_index_temp = best_neighbor.global_best_index
                 p.global_best_pos_temp = best_neighbor.global_best_pos
@@ -108,6 +112,7 @@ class PSO_Ring:
                 self.global_best = p.fitness
                 self.global_best_temp_pos = p.pos
                 self.global_best_temp_index = idx
+
         for idx in range(len(self.particles)):
             p = self.particles[idx]
             p.global_best_fitness = p.global_best_fitness_temp

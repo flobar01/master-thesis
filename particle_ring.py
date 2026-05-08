@@ -31,7 +31,7 @@ class Particle:
         self.best_pos       = np.array([])
         self.global_best_pos = pos
         self.global_best_index = index
-        self.global_best_fitness = 100000
+        self.global_best_fitness = self.fitness_update()
         self.global_best_pos_temp = pos
         self.global_best_index_temp = index
         self.global_best_fitness_temp = 100000
@@ -54,6 +54,8 @@ class Particle:
             social = params.c2 * (self.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
             #new_vel = self.check_vel(new_vel)
+            if self.index == 0:
+                print(self.global_best_pos)
             self.pos = self.pos + new_vel
             self.vel = new_vel
             #self.clamp()
@@ -107,4 +109,8 @@ class Particle:
             if new_fitness < self.pso.global_best:
                 global_change = True
                 self.pso.global_change = True
+        if new_fitness < self.global_best_fitness:
+            self.global_best_fitness = new_fitness
+            self.global_best_index = self.index
+            self.global_best_pos = self.pos
         self.fitness = new_fitness

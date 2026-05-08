@@ -42,7 +42,7 @@ def range_conversion(dictionary):
         dictionary[key] = (((dictionary[key]- oldMin) * newRange) / oldRange) + newMin
 
 def run_pso(to_remove, first_run):
-    pso = PSO()
+    pso = PSO_Ring()
     pso.init_population(to_remove)
     histories  = []
     start_pos  = []
@@ -192,11 +192,6 @@ if __name__ == '__main__':
     #bestes anfangspartikel mal rausnehmen aus evaluation
     #impact (alle anzeigen aber unwichtige grau)
 
-    pso = PSO_Ring()
-    pso.init_population([])
-    for i in range(2):
-        pso.update_step()
-    pass
     to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, all_fitness_improvs1 = run_pso([], True)
     improvs_array = {}
     ranks_array = {}
@@ -286,6 +281,6 @@ if __name__ == '__main__':
 
         ani = animation.FuncAnimation(fig, update, frames=25, interval=500, repeat=False)
         save_name = f"vis_{params.w}_{params.c1}_{params.c2}.mp4"
-        ani.save(save_name, writer="ffmpeg", dpi=100)
+        #ani.save(save_name, writer="ffmpeg", dpi=100)
         #plt.ioff()
         plt.show()

@@ -1,5 +1,5 @@
 class params:
-    w          = 0.5
+    w          = 0.8
     c1         = 1.4
     c2         = 1.4
     popsize    = 20
