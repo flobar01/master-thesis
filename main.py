@@ -208,6 +208,8 @@ if __name__ == '__main__':
             ranks_array[key].append(current_ranks[key])
         global_rank_history.append(current_ranks[pso.global_best_index])
     
+    for i in pso.particles:
+        print(i.shared_best, i.index)
         
     x = range(params.iterations)
     if not graphical:
@@ -230,7 +232,7 @@ if __name__ == '__main__':
         ax.legend(handles, labels)
         ax.set_title(f"w = {params.w}, c1: {params.c1}, c2: {params.c2}, best: {pso.global_best_index}")
         ax.set_xlabel("Generation")
-        plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
+        #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
         plt.show()
 
     if graphical:
