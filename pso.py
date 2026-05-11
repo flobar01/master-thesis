@@ -49,9 +49,9 @@ class PSO:
                             pos = np.append(pos, rand)
                         else:
                             if i == 0:
-                                pos = np.array([-5, 3])
+                                pos = np.array([-5, 1])
                             else:
-                                pos = np.array([-3, i/2-10])
+                                pos = np.array([-3, (10-i)/2])
                             '''if i == 0:
                                 pos = np.append(pos,-1)
                             else:

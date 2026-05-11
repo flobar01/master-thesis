@@ -72,7 +72,7 @@ class PSO_Ring:
                             if i == 0:
                                 pos = np.array([-5, 3])
                             else:
-                                pos = np.array([-3, i/2-10])
+                                pos = np.array([-3, (10-i)/2])
                             '''if i == 0:
                                 pos = np.append(pos,-1)
                             else:
@@ -102,10 +102,12 @@ class PSO_Ring:
             p = self.particles[idx]
             p.update()
             best_neighbor = self.particles[self.getlbestFitness(idx)]
-            if best_neighbor.global_best_fitness < p.global_best_fitness:
-                p.global_best_fitness_temp = best_neighbor.global_best_fitness
-                p.global_best_index_temp = best_neighbor.global_best_index
-                p.global_best_pos_temp = best_neighbor.global_best_pos
+            if best_neighbor.index != idx:
+                best_neighbor.shared_best += 1
+                if best_neighbor.global_best_fitness < p.global_best_fitness:
+                    p.global_best_fitness_temp = best_neighbor.global_best_fitness
+                    p.global_best_index_temp = best_neighbor.global_best_index
+                    p.global_best_pos_temp = best_neighbor.global_best_pos
             
             if p.fitness < self.global_best:
                 self.global_best_ratio = self.global_best / p.fitness
@@ -115,9 +117,11 @@ class PSO_Ring:
 
         for idx in range(len(self.particles)):
             p = self.particles[idx]
-            p.global_best_fitness = p.global_best_fitness_temp
-            p.global_best_index = p.global_best_index_temp
-            p.global_best_pos = p.global_best_pos_temp
+            if p.global_best_fitness_temp != None:
+                p.global_best_fitness = p.global_best_fitness_temp
+                p.global_best_index = p.global_best_index_temp
+                p.global_best_pos = p.global_best_pos_temp
+                p.global_best_fitness_temp = None
 
 
         self.global_best_pos = self.global_best_temp_pos

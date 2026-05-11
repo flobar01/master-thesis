@@ -170,7 +170,7 @@ def run_pso(to_remove, first_run):
         #print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
-        best_improv = list(sorted_norm_improvs)[-1]
+        best_improv = list(sorted_norm_improvs1)[-1]
         #print(pso.particles[highest_occur].history[0].pos)
         entries = []
         for i in pso.history:
@@ -186,7 +186,7 @@ def run_pso(to_remove, first_run):
 
 if __name__ == '__main__':
     debug = True
-    graphical = False
+    graphical = not True
     #kolineare partikel -> testen mit 1D partikel sollten sich immer wieder überholen
     #impact anpassen -> verringern mit zunehmender generation
     #bestes anfangspartikel mal rausnehmen aus evaluation
@@ -279,8 +279,8 @@ if __name__ == '__main__':
                 ax.scatter(1,1, color="blue")
 
 
-        ani = animation.FuncAnimation(fig, update, frames=25, interval=500, repeat=False)
+        ani = animation.FuncAnimation(fig, update, frames=params.iterations, interval=500, repeat=False)
         save_name = f"vis_{params.w}_{params.c1}_{params.c2}.mp4"
-        #ani.save(save_name, writer="ffmpeg", dpi=100)
+        ani.save(save_name, writer="ffmpeg", dpi=100)
         #plt.ioff()
         plt.show()

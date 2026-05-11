@@ -34,12 +34,13 @@ class Particle:
         self.global_best_fitness = self.fitness_update()
         self.global_best_pos_temp = pos
         self.global_best_index_temp = index
-        self.global_best_fitness_temp = 100000
+        self.global_best_fitness_temp = self.fitness_update()
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
         entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
         self.history = np.append(self.history, entry)
         self.stationary = stationary
+        self.shared_best = 0
     
     def update(self):
         if not self.stationary:
@@ -53,12 +54,11 @@ class Particle:
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
-            #new_vel = self.check_vel(new_vel)
-            if self.index == 0:
-                print(self.global_best_pos)
+            new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
-            #self.clamp()
+            self.clamp()
+            #print(f"{self.global_best_pos} {self.global_best_index} {self.index}")
             self.check_fitness()
             last_fitness = self.history[-1].fitness
             entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, last_fitness - self.fitness)
@@ -113,4 +113,5 @@ class Particle:
             self.global_best_fitness = new_fitness
             self.global_best_index = self.index
             self.global_best_pos = self.pos
+    
         self.fitness = new_fitness
