@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.animation as animation
 import seaborn as sns
+from evaluation import Evaluation
 
 MAX_TO_REMOVE = 3
 def distance(first, second):
@@ -83,7 +84,7 @@ def run_pso(to_remove, first_run, using_ring):
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
         end_pos.append(part.history[-1].pos)
-
+    shrink_ratio = 0.8
     for i in range(params.iterations):
         fitness_particles = {}
         current_improvs = {}
@@ -99,26 +100,26 @@ def run_pso(to_remove, first_run, using_ring):
 
                 if history.best_idx in fitness_improvements:
                     fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement * params.c2
-                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx] * 0.4) + history.fitness_improvement * params.c2
+                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx] * shrink_ratio) + history.fitness_improvement * params.c2
                 else:
                     fitness_improvements.update({history.best_idx: history.fitness_improvement * params.c2})
                     fitness_improvements1.update({history.best_idx: history.fitness_improvement * params.c2})
                 if part.index in fitness_improvements:
                     fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
-                    fitness_improvements1[part.index] = (fitness_improvements1[part.index] * 0.4) + history.fitness_improvement * params.c1
+                    fitness_improvements1[part.index] = (fitness_improvements1[part.index] * shrink_ratio) + history.fitness_improvement * params.c1
                 else:
                     fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
                     fitness_improvements1.update({part.index: history.fitness_improvement * params.c1})
                 
                 if history.best_idx in current_improvs:
                     current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * params.c2
-                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] * 0.4 + history.fitness_improvement * params.c2
+                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] * shrink_ratio + history.fitness_improvement * params.c2
                 else:
                     current_improvs.update({history.best_idx: history.fitness_improvement*params.c2})
                     current_improvs1.update({history.best_idx: history.fitness_improvement*params.c2})
                 if part.index in current_improvs:
                     current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
-                    current_improvs1[part.index] = current_improvs1[part.index]*0.4 + history.fitness_improvement * params.c1
+                    current_improvs1[part.index] = current_improvs1[part.index] * shrink_ratio + history.fitness_improvement * params.c1
                 else:
                     current_improvs.update({part.index: history.fitness_improvement * params.c1})
                     current_improvs1.update({part.index: history.fitness_improvement * params.c1})
@@ -168,11 +169,11 @@ def run_pso(to_remove, first_run, using_ring):
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         #print(occurences1)
-        print("-------------------------------")
-        print(sorted_norm_improvs)
-        print("---------------")
-        print("========= with decreasing =========")
-        print(sorted_norm_improvs1)
+        #print("-------------------------------")
+        #print(sorted_norm_improvs)
+        #print("---------------")
+        #print("========= with decreasing =========")
+        #print(sorted_norm_improvs1)
         #print(sorted_ranks)
         highest_occur = max(occurences, key=occurences.get)
         best_part = pso.particles[pso.global_best_index].history
@@ -187,98 +188,79 @@ def run_pso(to_remove, first_run, using_ring):
         df = pd.DataFrame(entries, columns=["Gen", "Global", "Local", "Mean Fitness", "best ratio", "Overall Ratio", "Improvement to beginning"])
         #print(df)
         #print("overall steps = ", pso.overall_steps)
-        print("-------------------------------------------------------------------------")
+        #print("-------------------------------------------------------------------------")
     return to_remove, pso, all_fitness_improvs, all_ranks, best_improv, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1
 
 if __name__ == '__main__':
     debug = True
     graphical = not True
 
-
-
     to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
     improvs_array = {}
+    improvs_array1 = {}
     ranks_array = {}
     global_rank_history = []
     global_fitness_history = []
     shared_best = {}
     for key in all_fitness_improvs[1].keys():
         improvs_array.update({key: []})
+        improvs_array1.update({key: []})
         ranks_array.update({key: []})
     #run_pso(to_remove, False)
     for i in range(params.iterations):
-        current_improvs = all_fitness_improvs1[i]
+        current_improvs = all_fitness_improvs[i]
+        current_improvs1 = all_fitness_improvs1[i]
         current_ranks = all_ranks[i]
         global_fitness_history.append(pso.history[i].global_fitness)
         for key in current_improvs.keys():
             improvs_array[key].append(current_improvs[key])
+            improvs_array1[key].append(current_improvs1[key])
             ranks_array[key].append(current_ranks[key])
         global_rank_history.append(current_ranks[pso.global_best_index])
     
         
     to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring = run_pso([], True, True)
     improvs_array_ring = {}
+    improvs_array_ring1 = {}
     ranks_array_ring = {}
     global_rank_history_ring = []
     global_fitness_history_ring = []
     shared_best_ring = {}
     for key in all_fitness_improvs_ring[1].keys():
         improvs_array_ring.update({key: []})
+        improvs_array_ring1.update({key: []})
         ranks_array_ring.update({key: []})
     #run_pso(to_remove, False)
     for i in range(params.iterations):
-        current_improvs_ring = all_fitness_improvs1_ring[i]
+        current_improvs_ring = all_fitness_improvs_ring[i]
+        current_improvs_ring1 = all_fitness_improvs1_ring[i]
         current_ranks_ring = all_ranks_ring[i]
         global_fitness_history_ring.append(pso_ring.history[i].global_fitness)
         for key in current_improvs_ring.keys():
             improvs_array_ring[key].append(current_improvs_ring[key])
+            improvs_array_ring1[key].append(current_improvs_ring1[key])
             ranks_array_ring[key].append(current_ranks_ring[key])
         global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
     
     for i in pso_ring.particles:
         shared_best_ring[i.index] = i.shared_best
-    
-    x = range(params.iterations)
     if not graphical:
-        grey_color = "#00000010"
         data_ranks = pd.DataFrame.from_dict(ranks_array)
         data_ranks_ring = pd.DataFrame.from_dict(ranks_array_ring)
         data_improvs = pd.DataFrame.from_dict(improvs_array)
+        data_improvs1 = pd.DataFrame.from_dict(improvs_array1)
         data_improvs_ring = pd.DataFrame.from_dict(improvs_array_ring)
+        data_improvs1_ring = pd.DataFrame.from_dict(improvs_array_ring1)
         standard_pal = sns.color_palette()
-        pal = {index: standard_pal[0] if index == best_improvs else standard_pal[1] if index == pso.global_best_index else grey_color for index in data_ranks.columns}
-        pal_ring = {index: standard_pal[0] if index == best_improvs_ring else standard_pal[1] if index == pso_ring.global_best_index else grey_color for index in data_ranks_ring.columns}
-        
-        fig, axes = plt.subplots(nrows = 2)
-        sns.lineplot(data_improvs, ax=axes[0], palette=pal, dashes=False)
-        sns.lineplot(data_improvs_ring, ax=axes[1], palette=pal_ring, dashes=False)
-        for i in range(2):
-            ax = axes[i]
-            ax.set_ylim(-0.75,0.75)
-            handles, labels = ax.get_legend_handles_labels()
-            to_remove = {}
-            if i == 0:
-                to_remove = {str(x) if x != best_improvs and x != pso.global_best_index else "" for x in data_ranks.columns}
-            else:
-                to_remove = {str(x) if x != best_improvs_ring and x != pso_ring.global_best_index else "" for x in data_ranks_ring.columns}
-
-            for line, label in zip(ax.lines, labels):
-                if label in to_remove:
-                    line.set_linewidth(1)
-            filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
-            print(to_remove)
-            handles, labels = zip(*filtered)
-            ax.legend(handles, labels)
-            if i == 0:
-                ax.set_title(f"w: {params.w}, c1: {params.c1}, c2: {params.c2}, best: {pso.global_best_index}")
-            else:
-                ax.set_title(f"w: {params.w}, c1: {params.c1}, c2: {params.c2}, best: {pso_ring.global_best_index}")
-            ax.set_xlabel("Generation")
-        #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
+        sns.set_theme(style="darkgrid") 
         #plt.show()
-    #plt.clf()
-    #ax = sns.lineplot(global_fitness_history)
-    plt.show()
+        #Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
+        #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
+        #plt.savefig(f"improvs_{params.w}_{params.c1}_{params.c2}.png")
+        #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, pso, pso_ring)
+        #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
+        Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, pso, pso_ring)
+        plt.show()
 
     if graphical:
         #plt.ion()
