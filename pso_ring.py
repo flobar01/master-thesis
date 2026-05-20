@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 class FitnessHistoryEntry:
-    def __init__(self, global_change, local_change, fitness, generation, global_best_ratio, fitness_ratio=0, global_improvement=0):
+    def __init__(self, global_change, local_change, fitness, generation, global_best_ratio, fitness_ratio=0, global_improvement=0, global_fitness=10000):
         self.global_change = global_change
         self.local_change = local_change
         self.fitness = fitness
@@ -13,6 +13,7 @@ class FitnessHistoryEntry:
         self.gen = generation
         self.fitness_ratio = fitness_ratio
         self.global_improvement = global_improvement
+        self.global_fitness = global_fitness
 
 class PSO_Ring:
     def __init__(self):
@@ -92,7 +93,7 @@ class PSO_Ring:
         self.global_best_pos = self.global_best_temp_pos
         self.global_best_index = self.global_best_temp_index
         self.first_global_overall_fitness = self.getCurrentMeanFitness()
-        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio)
+        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio,0, self.global_fitness)
         self.history = np.append(self.history, historyEntry)
         self.global_fitness = self.getCurrentMeanFitness()
         self.generation += 1  
@@ -126,7 +127,7 @@ class PSO_Ring:
 
         self.global_best_pos = self.global_best_temp_pos
         self.global_best_index = self.global_best_temp_index
-        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, self.global_fitness/self.getCurrentMeanFitness(), self.first_global_overall_fitness/self.getCurrentMeanFitness())
+        historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, self.global_fitness/self.getCurrentMeanFitness(), self.first_global_overall_fitness/self.getCurrentMeanFitness(), self.global_best)
         self.global_fitness = self.getCurrentMeanFitness()
         self.global_best_ratio = float(1.000000)
         self.history = np.append(self.history, historyEntry)
