@@ -195,75 +195,83 @@ def run_pso(to_remove, first_run, using_ring):
 if __name__ == '__main__':
     debug = True
     graphical = not True
-
-    to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
-    improvs_array = {}
-    improvs_array1 = {}
-    ranks_array = {}
-    global_rank_history = []
-    global_fitness_history = []
-    shared_best = {}
-    for key in all_fitness_improvs[1].keys():
-        improvs_array.update({key: []})
-        improvs_array1.update({key: []})
-        ranks_array.update({key: []})
-    #run_pso(to_remove, False)
-    for i in range(params.iterations):
-        current_improvs = all_fitness_improvs[i]
-        current_improvs1 = all_fitness_improvs1[i]
-        current_ranks = all_ranks[i]
-        global_fitness_history.append(pso.history[i].global_fitness)
-        for key in current_improvs.keys():
-            improvs_array[key].append(current_improvs[key])
-            improvs_array1[key].append(current_improvs1[key])
-            ranks_array[key].append(current_ranks[key])
-        global_rank_history.append(current_ranks[pso.global_best_index])
-    
-        
-    to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring = run_pso([], True, True)
-    improvs_array_ring = {}
-    improvs_array_ring1 = {}
-    ranks_array_ring = {}
-    global_rank_history_ring = []
-    global_fitness_history_ring = []
-    shared_best_ring = {}
-    for key in all_fitness_improvs_ring[1].keys():
-        improvs_array_ring.update({key: []})
-        improvs_array_ring1.update({key: []})
-        ranks_array_ring.update({key: []})
-    #run_pso(to_remove, False)
-    for i in range(params.iterations):
-        current_improvs_ring = all_fitness_improvs_ring[i]
-        current_improvs_ring1 = all_fitness_improvs1_ring[i]
-        current_ranks_ring = all_ranks_ring[i]
-        global_fitness_history_ring.append(pso_ring.history[i].global_fitness)
-        for key in current_improvs_ring.keys():
-            improvs_array_ring[key].append(current_improvs_ring[key])
-            improvs_array_ring1[key].append(current_improvs_ring1[key])
-            ranks_array_ring[key].append(current_ranks_ring[key])
-        global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
-    
-    for i in pso_ring.particles:
-        shared_best_ring[i.index] = i.shared_best
-    if not graphical:
-        data_ranks = pd.DataFrame.from_dict(ranks_array)
-        data_ranks_ring = pd.DataFrame.from_dict(ranks_array_ring)
-        data_improvs = pd.DataFrame.from_dict(improvs_array)
-        data_improvs1 = pd.DataFrame.from_dict(improvs_array1)
-        data_improvs_ring = pd.DataFrame.from_dict(improvs_array_ring)
-        data_improvs1_ring = pd.DataFrame.from_dict(improvs_array_ring1)
-        standard_pal = sns.color_palette()
-        sns.set_theme(style="darkgrid") 
-        #plt.show()
-        Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
-        plt.savefig(f"fitness{params.w}_{params.c1}_{params.c2}.png")
-        Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
-        plt.savefig(f"improvs_{params.w}_{params.c1}_{params.c2}.png")
-        Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, pso, pso_ring)
-        plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
-        Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-        plt.savefig(f"normed_improvs_{params.w}_{params.c1}_{params.c2}.png")
-        #plt.show()
+    w_values = [0.5, 0.7]
+    c1_values = [1.4]
+    c2_values = [1.4]
+    for w in w_values:
+        for c1 in c1_values:
+            for c2 in c2_values:
+                params.w = w
+                to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
+                improvs_array = {}
+                improvs_array1 = {}
+                ranks_array = {}
+                global_rank_history = []
+                global_fitness_history = []
+                shared_best = {}
+                for key in all_fitness_improvs[1].keys():
+                    improvs_array.update({key: []})
+                    improvs_array1.update({key: []})
+                    ranks_array.update({key: []})
+                #run_pso(to_remove, False)
+                for i in range(params.iterations):
+                    current_improvs = all_fitness_improvs[i]
+                    current_improvs1 = all_fitness_improvs1[i]
+                    current_ranks = all_ranks[i]
+                    global_fitness_history.append(pso.history[i].global_fitness)
+                    for key in current_improvs.keys():
+                        improvs_array[key].append(current_improvs[key])
+                        improvs_array1[key].append(current_improvs1[key])
+                        ranks_array[key].append(current_ranks[key])
+                    global_rank_history.append(current_ranks[pso.global_best_index])
+                
+                    
+                to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring = run_pso([], True, True)
+                improvs_array_ring = {}
+                improvs_array_ring1 = {}
+                ranks_array_ring = {}
+                global_rank_history_ring = []
+                global_fitness_history_ring = []
+                shared_best_ring = {}
+                for key in all_fitness_improvs_ring[1].keys():
+                    improvs_array_ring.update({key: []})
+                    improvs_array_ring1.update({key: []})
+                    ranks_array_ring.update({key: []})
+                #run_pso(to_remove, False)
+                for i in range(params.iterations):
+                    current_improvs_ring = all_fitness_improvs_ring[i]
+                    current_improvs_ring1 = all_fitness_improvs1_ring[i]
+                    current_ranks_ring = all_ranks_ring[i]
+                    global_fitness_history_ring.append(pso_ring.history[i].global_fitness)
+                    for key in current_improvs_ring.keys():
+                        improvs_array_ring[key].append(current_improvs_ring[key])
+                        improvs_array_ring1[key].append(current_improvs_ring1[key])
+                        ranks_array_ring[key].append(current_ranks_ring[key])
+                    global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
+                
+                for i in pso_ring.particles:
+                    shared_best_ring[i.index] = i.shared_best
+                if not graphical:
+                    data_ranks = pd.DataFrame.from_dict(ranks_array)
+                    data_ranks_ring = pd.DataFrame.from_dict(ranks_array_ring)
+                    data_improvs = pd.DataFrame.from_dict(improvs_array)
+                    data_improvs1 = pd.DataFrame.from_dict(improvs_array1)
+                    data_improvs_ring = pd.DataFrame.from_dict(improvs_array_ring)
+                    data_improvs1_ring = pd.DataFrame.from_dict(improvs_array_ring1)
+                    standard_pal = sns.color_palette()
+                    sns.set_theme(style="darkgrid") 
+                    #plt.show()
+                    #Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
+                    #plt.savefig(f"fitness_{params.w}_{params.c1}_{params.c2}.png")
+                    #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
+                    #plt.savefig(f"improvs_{params.w}_{params.c1}_{params.c2}.png")
+                    #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, pso, pso_ring)
+                    #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
+                    #Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
+                    #plt.savefig(f"normed_improvs_{params.w}_{params.c1}_{params.c2}.png")
+                    Evaluation.evaluate_shared(pso_ring)
+                    plt.savefig(f"shared_{w}_{params.c1}_{params.c2}.png")
+                    plt.show()
 
     if graphical:
         #plt.ion()

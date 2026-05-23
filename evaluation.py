@@ -117,3 +117,11 @@ class Evaluation:
                 if j == 1 and i == 1:
                     ax.set_title(f"ring PSO decreasing best: {pso_ring.global_best_index}")
                 ax.set_xlabel("Generation")
+
+    def evaluate_shared(pso_ring):
+        shared_data = {}
+        for i in pso_ring.particles:
+            shared_data[i.index] = i.shared_best
+        ax = sns.barplot(shared_data)
+        ax.set_xlabel("Index")
+        ax.set_ylabel("# particle shared global best")
