@@ -76,7 +76,7 @@ class Particle:
 
     def fitness_update(self):
         return self.rosenbrock_fitness()
-        return self.ackley_fitness()
+        #return self.ackley_fitness()
         return self.pos[0]
 
     def circle_fitness(self):

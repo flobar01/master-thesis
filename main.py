@@ -195,14 +195,14 @@ def run_pso(to_remove, first_run, using_ring):
 if __name__ == '__main__':
     debug = True
     graphical = not True
-    w_values = [0.5, 0.7]
+    w_values = [0.5]
     c1_values = [1.4]
     c2_values = [1.4]
+    to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
     for w in w_values:
         for c1 in c1_values:
             for c2 in c2_values:
                 params.w = w
-                to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
                 improvs_array = {}
                 improvs_array1 = {}
                 ranks_array = {}
@@ -262,16 +262,16 @@ if __name__ == '__main__':
                     sns.set_theme(style="darkgrid") 
                     #plt.show()
                     #Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
-                    #plt.savefig(f"fitness_{params.w}_{params.c1}_{params.c2}.png")
+                    #plt.savefig(f"evaluation/fitness_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
-                    #plt.savefig(f"improvs_{params.w}_{params.c1}_{params.c2}.png")
+                    #plt.savefig(f"evaluation/improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, pso, pso_ring)
-                    #plt.savefig(f"ranks_{params.w}_{params.c1}_{params.c2}.png")
+                    #plt.savefig(f"evaluation/ranks_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     #Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-                    #plt.savefig(f"normed_improvs_{params.w}_{params.c1}_{params.c2}.png")
+                    #plt.savefig(f"evaluation/normed_improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     Evaluation.evaluate_shared(pso_ring)
-                    plt.savefig(f"shared_{w}_{params.c1}_{params.c2}.png")
-                    plt.show()
+                    plt.savefig(f"evaluation/shared_{w}_{params.c1}_{params.c2}.png", dpi=250)
+                #plt.show()
 
     if graphical:
         #plt.ion()
@@ -302,10 +302,10 @@ if __name__ == '__main__':
                 else:
                     y_pos.append(part.index)
                 current_improvs = all_fitness_improvs[i]
-                if len(current) > 1:
+                """if len(current) > 1:
                     ax.text(current[0], current[1], str(part.index), fontsize=9)
                 else:
-                    ax.text(current[0], part.index, str(part.index), fontsize=9)
+                    ax.text(current[0], part.index, str(part.index), fontsize=9)"""
                 if part.index in current_improvs:
                     improvs.append(current_improvs[part.index])
                 else:
@@ -320,7 +320,7 @@ if __name__ == '__main__':
 
 
         ani = animation.FuncAnimation(fig, update, frames=params.iterations, interval=500, repeat=False)
-        save_name = f"vis_{params.w}_{params.c1}_{params.c2}.mp4"
-        ani.save(save_name, writer="ffmpeg", dpi=100)
+        save_name = f"vis_{params.w}_{params.c1}_{params.c2}.gif"
+        ani.save(save_name, writer="ffmpeg", dpi=500)
         #plt.ioff()
         plt.show()

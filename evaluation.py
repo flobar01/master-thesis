@@ -46,7 +46,7 @@ class Evaluation:
         pal_ring = {index: standard_pal[0] if index == best_improvs_ring else standard_pal[1] if index == pso_ring.global_best_index else grey_color for index in data_ranks_ring.columns}
 
         fig, axes = plt.subplots(nrows = 2, figsize=(10,8))
-        fig.set_size_inches(10,8)
+        fig.set_size_inches(12,10)
         sns.lineplot(data_ranks, ax=axes[0], palette=pal, dashes=False)
         sns.lineplot(data_ranks_ring, ax=axes[1], palette=pal_ring, dashes=False)
         for i in range(2):
