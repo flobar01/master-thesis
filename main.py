@@ -42,6 +42,29 @@ def range_conversion(dictionary):
     for key in dictionary.keys():
         dictionary[key] = (((dictionary[key]- oldMin) * newRange) / oldRange) + newMin
 
+def flatten_improvs_dict(all_fitness_improvs):
+    all_vals = []
+
+    for generation in all_fitness_improvs:
+        all_vals.extend(generation.values())
+
+    all_vals = np.array(all_vals)
+
+    cap = np.percentile(all_vals, 99)
+
+    processed = []
+
+    for generation in all_fitness_improvs:
+
+        processed_generation = {
+            k: np.log1p(min(v, cap))
+            for k, v in generation.items()
+        }
+
+        processed.append(processed_generation)
+
+    return processed
+
 def run_pso(to_remove, first_run, using_ring):
     pso = None
     if using_ring:
@@ -84,11 +107,14 @@ def run_pso(to_remove, first_run, using_ring):
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
         end_pos.append(part.history[-1].pos)
-    shrink_ratio = 0.8
+    shrink_ratio = 0.4
     for i in range(params.iterations):
         fitness_particles = {}
         current_improvs = {}
         current_improvs1 = {}
+        for key in fitness_improvements1.keys():
+            fitness_improvements1[key] = fitness_improvements1[key] * shrink_ratio
+
         for part in pso.particles:
             if len(part.history) > 2:
                 history = part.history[i]
@@ -99,27 +125,27 @@ def run_pso(to_remove, first_run, using_ring):
                     occurences1.update({history.best_idx: 1})
 
                 if history.best_idx in fitness_improvements:
-                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement * params.c2
-                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx] * shrink_ratio) + history.fitness_improvement * params.c2
+                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
+                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2
                 else:
-                    fitness_improvements.update({history.best_idx: history.fitness_improvement * params.c2})
-                    fitness_improvements1.update({history.best_idx: history.fitness_improvement * params.c2})
+                    fitness_improvements.update({history.best_idx: history.fitness_improvement/params.popsize * params.c2})
+                    fitness_improvements1.update({history.best_idx: history.fitness_improvement/params.popsize * params.c2})
                 if part.index in fitness_improvements:
                     fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
-                    fitness_improvements1[part.index] = (fitness_improvements1[part.index] * shrink_ratio) + history.fitness_improvement * params.c1
+                    fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * params.c1
                 else:
                     fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
                     fitness_improvements1.update({part.index: history.fitness_improvement * params.c1})
                 
                 if history.best_idx in current_improvs:
-                    current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * params.c2
-                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] * shrink_ratio + history.fitness_improvement * params.c2
+                    current_improvs[history.best_idx] = current_improvs[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
+                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
                 else:
-                    current_improvs.update({history.best_idx: history.fitness_improvement*params.c2})
-                    current_improvs1.update({history.best_idx: history.fitness_improvement*params.c2})
+                    current_improvs.update({history.best_idx: history.fitness_improvement/params.popsize*params.c2})
+                    current_improvs1.update({history.best_idx: history.fitness_improvement/params.popsize*params.c2})
                 if part.index in current_improvs:
                     current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
-                    current_improvs1[part.index] = current_improvs1[part.index] * shrink_ratio + history.fitness_improvement * params.c1
+                    current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1
                 else:
                     current_improvs.update({part.index: history.fitness_improvement * params.c1})
                     current_improvs1.update({part.index: history.fitness_improvement * params.c1})
@@ -129,9 +155,9 @@ def run_pso(to_remove, first_run, using_ring):
             #range_conversion(current_improvs)
             for key in current_improvs.keys():
                 if total_improvement != 0:
-                    current_improvs[key] = current_improvs[key] / total_improvement
+                    current_improvs[key] = current_improvs[key]
                 if total_improvement1 != 0:
-                    current_improvs1[key] = current_improvs1[key] / total_improvement1
+                    current_improvs1[key] = current_improvs1[key]
         all_fitness_improvs.append(current_improvs)
         all_fitness_improvs1.append(current_improvs1)
         sorted_particles = dict(sorted(fitness_particles.items(), key=lambda item: item[1]))
@@ -157,8 +183,13 @@ def run_pso(to_remove, first_run, using_ring):
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
         np.save("saves/start_pos", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
+    
+    processed = flatten_improvs_dict(all_fitness_improvs)
+    processed1 = flatten_improvs_dict(all_fitness_improvs1)
+    
     total_improvement = sum(map(abs,fitness_improvements.values()))
     total_improvement1 = sum(map(abs,fitness_improvements1.values()))
+
     for key in fitness_improvements.keys():
         norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
         norm_fitness_improvs1[key] = float(fitness_improvements1[key] / total_improvement1)
@@ -190,19 +221,19 @@ def run_pso(to_remove, first_run, using_ring):
         #print(df)
         #print("overall steps = ", pso.overall_steps)
         #print("-------------------------------------------------------------------------")
-    return to_remove, pso, all_fitness_improvs, all_ranks, best_improv, best_improv1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1
+    return to_remove, pso, processed, all_ranks, best_improv, best_improv1, processed1, sorted_norm_improvs, sorted_norm_improvs1
 
 if __name__ == '__main__':
     debug = True
     graphical = not True
-    w_values = [0.5]
+    w_values = [0.7]
     c1_values = [1.4]
     c2_values = [1.4]
-    to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
     for w in w_values:
         for c1 in c1_values:
             for c2 in c2_values:
-                params.w = w
+                #params.w = w
+                to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
                 improvs_array = {}
                 improvs_array1 = {}
                 ranks_array = {}
@@ -261,16 +292,16 @@ if __name__ == '__main__':
                     standard_pal = sns.color_palette()
                     sns.set_theme(style="darkgrid") 
                     #plt.show()
-                    #Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
-                    #plt.savefig(f"evaluation/fitness_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
-                    #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
-                    #plt.savefig(f"evaluation/improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
-                    #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, pso, pso_ring)
-                    #plt.savefig(f"evaluation/ranks_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
-                    #Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-                    #plt.savefig(f"evaluation/normed_improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
+                    plt.savefig(f"evaluation1/fitness_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
+                    plt.savefig(f"evaluation1/improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
+                    plt.savefig(f"evaluation1/ranks_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
+                    plt.savefig(f"evaluation1/normed_improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     Evaluation.evaluate_shared(pso_ring)
-                    plt.savefig(f"evaluation/shared_{w}_{params.c1}_{params.c2}.png", dpi=250)
+                    plt.savefig(f"evaluation1/shared_{w}_{params.c1}_{params.c2}.png", dpi=250)
                 #plt.show()
 
     if graphical:
@@ -293,7 +324,7 @@ if __name__ == '__main__':
             x_pos = []
             y_pos = []
             improvs = []
-            for part in pso.particles:
+            for part in pso_ring.particles:
                 current = part.history[i].pos
                 best_idx = part.history[i].best_idx
                 x_pos.append(current[0])
@@ -320,7 +351,7 @@ if __name__ == '__main__':
 
 
         ani = animation.FuncAnimation(fig, update, frames=params.iterations, interval=500, repeat=False)
-        save_name = f"vis_{params.w}_{params.c1}_{params.c2}.gif"
-        ani.save(save_name, writer="ffmpeg", dpi=500)
+        save_name = f"vis_{params.w}_{params.c1}_{params.c2}.mp4"
+        #ani.save(save_name, writer="ffmpeg", dpi=500)
         #plt.ioff()
         plt.show()
