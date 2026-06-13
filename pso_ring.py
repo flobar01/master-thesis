@@ -57,27 +57,30 @@ class PSO_Ring:
             dist = dist + ((first[i] - second[i])**2)
         return math.sqrt(dist)
 
-    def init_population(self, to_remove):
+    def init_population(self, to_remove, start_poses=None):
         idx = 0
-        made_up = True
+        made_up = False
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
                 if len(to_remove) == 0:
-                    pos = np.array([])
-                    for dim in range(params.dimensions):
-                        if not made_up:
-                            rand = random.randint(-params.bounds, params.bounds)
-                            pos = np.append(pos, rand)
-                        else:
-                            if i == 0:
-                                pos = np.array([-5, 3])
+                    if start_poses == None:
+                        pos = np.array([])
+                        for dim in range(params.dimensions):
+                            if not made_up:
+                                rand = random.randint(-params.bounds, params.bounds)
+                                pos = np.append(pos, rand)
                             else:
-                                pos = np.array([-3, (10-i)/2])
-                            '''if i == 0:
-                                pos = np.append(pos,-1)
-                            else:
-                                pos = np.append(pos, 0)'''
+                                if i == 0:
+                                    pos = np.array([-5, 3])
+                                else:
+                                    pos = np.array([-3, (10-i)/2])
+                                '''if i == 0:
+                                    pos = np.append(pos,-1)
+                                else:
+                                    pos = np.append(pos, 0)'''
+                    else:
+                        pos = start_poses[i]
                 else:
                     pos = poses[i]
                 vel = np.empty(params.dimensions)

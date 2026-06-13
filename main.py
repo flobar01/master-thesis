@@ -65,13 +65,13 @@ def flatten_improvs_dict(all_fitness_improvs):
 
     return processed
 
-def run_pso(to_remove, first_run, using_ring):
+def run_pso(to_remove, first_run, using_ring, start_poses=None):
     pso = None
     if using_ring:
         pso = PSO_Ring()
     else:
         pso = PSO()
-    pso.init_population(to_remove)
+    pso.init_population(to_remove, start_poses)
     histories  = []
     start_pos  = []
     end_pos    = []
@@ -85,6 +85,9 @@ def run_pso(to_remove, first_run, using_ring):
     all_ranks = []
     ranks = {}
     to_remove  = []
+    positions_start = []
+    for p in pso.particles:
+        positions_start.append(p.pos)
     for i in range(params.popsize):
         occurences[i] = 0
         occurences1[i] = 0
@@ -107,7 +110,7 @@ def run_pso(to_remove, first_run, using_ring):
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
         end_pos.append(part.history[-1].pos)
-    shrink_ratio = 0.4
+    shrink_ratio = 0.6
     for i in range(params.iterations):
         fitness_particles = {}
         current_improvs = {}
@@ -221,7 +224,7 @@ def run_pso(to_remove, first_run, using_ring):
         #print(df)
         #print("overall steps = ", pso.overall_steps)
         #print("-------------------------------------------------------------------------")
-    return to_remove, pso, processed, all_ranks, best_improv, best_improv1, processed1, sorted_norm_improvs, sorted_norm_improvs1
+    return to_remove, pso, processed, all_ranks, best_improv, best_improv1, processed1, sorted_norm_improvs, sorted_norm_improvs1, positions_start
 
 if __name__ == '__main__':
     debug = True
@@ -233,7 +236,7 @@ if __name__ == '__main__':
         for c1 in c1_values:
             for c2 in c2_values:
                 #params.w = w
-                to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1 = run_pso([], True, False)
+                to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False)
                 improvs_array = {}
                 improvs_array1 = {}
                 ranks_array = {}
@@ -257,7 +260,7 @@ if __name__ == '__main__':
                     global_rank_history.append(current_ranks[pso.global_best_index])
                 
                     
-                to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring = run_pso([], True, True)
+                to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], True, True, positions_start)
                 improvs_array_ring = {}
                 improvs_array_ring1 = {}
                 ranks_array_ring = {}
@@ -293,15 +296,15 @@ if __name__ == '__main__':
                     sns.set_theme(style="darkgrid") 
                     #plt.show()
                     Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
-                    plt.savefig(f"evaluation1/fitness_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    plt.savefig(f"evaluation/fitness_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
-                    plt.savefig(f"evaluation1/improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    plt.savefig(f"evaluation/improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-                    plt.savefig(f"evaluation1/ranks_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    plt.savefig(f"evaluation/ranks_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-                    plt.savefig(f"evaluation1/normed_improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
+                    plt.savefig(f"evaluation/normed_improvs_{params.w}_{params.c1}_{params.c2}.png", dpi=250)
                     Evaluation.evaluate_shared(pso_ring)
-                    plt.savefig(f"evaluation1/shared_{w}_{params.c1}_{params.c2}.png", dpi=250)
+                    plt.savefig(f"evaluation/shared_{w}_{params.c1}_{params.c2}.png", dpi=250)
                 #plt.show()
 
     if graphical:
