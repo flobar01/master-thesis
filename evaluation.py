@@ -2,44 +2,74 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 import matplotlib.colors as mcolors
 import matplotlib.animation as animation
+import pandas as pd
 from parameters import params
 
 class Evaluation:
 
     def evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring):
         plt.clf()
-        fig, axes = plt.subplots(ncols=2, figsize=(12,6))
+        fig, axes = plt.subplots(ncols=2, figsize=(12.08, 7.2))
         sns.lineplot(global_fitness_history, ax=axes[0])
         sns.lineplot(global_fitness_history_ring, ax=axes[1])
         for i in range(2):
             ax = axes[i]
-            fig.suptitle(f"Global fitness w: {params.w}, c1: {params.c1}, c2: {params.c2}")
+            ax.set_ylim(0,1000)
+            #fig.suptitle(f"Global accumulated fitness")
             if i == 0:
-                ax.set_title(f"normal PSO best: {pso.global_best}")
+                ax.set_title(f"GBest")
             else:
-                ax.set_title(f"ring PSO best: {pso_ring.global_best}")
-            ax.set_xlabel("Generation")
+                ax.set_title(f"LBest")
+            ax.set_xlabel("Time Step")
 
     def evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring):
         plt.clf()
-        fig, axes = plt.subplots(2,2, figsize=(17,11))
-        sns.barplot(sorted_norm_improvs, ax=axes[0][0])
-        sns.barplot(sorted_norm_improvs_ring, ax=axes[1][0])
-        sns.barplot(sorted_norm_improvs1, ax=axes[0][1])
-        sns.barplot(sorted_norm_improvs1_ring, ax=axes[1][1])
+        fig = plt.figure(figsize=(12.08, 7.2))
+        subfigs = fig.subfigures(1, 2, wspace=0.08)
+        
+        plt.subplots_adjust(bottom=0.1, top=0.9, wspace=0.4, hspace=0.4)
+        standard_pal = sns.color_palette()
+        pal = {index: standard_pal[1] if str(index) == str(pso.global_best_index) else standard_pal[0] for index in sorted_norm_improvs.keys() }
+        pal_ring = {index: standard_pal[1] if str(index) == str(pso_ring.global_best_index) else standard_pal[0] for index in sorted_norm_improvs.keys() }
+        # Left column
+        left = subfigs[0]
+        left.suptitle("Accumulated Impact Metric")
+        axes_left = left.subplots(2, 1)
+
+        # Right column
+        right = subfigs[1]
+        right.suptitle("Decreasing Impact Metric")
+        axes_right = right.subplots(2, 1)
+        x=list(sorted_norm_improvs.values())
+        x1 = list(sorted_norm_improvs1.values())
+        x_ring = list(sorted_norm_improvs_ring.values())
+        x1_ring = list(sorted_norm_improvs1_ring.values())
+
+        y=list(sorted_norm_improvs.keys())
+        # Plot
+        sns.barplot(sorted_norm_improvs,      ax=axes_left[0], palette=pal,x=y, y=x, hue=y, legend=False)
+        sns.barplot(sorted_norm_improvs_ring, ax=axes_left[1], palette=pal_ring, x=y, y=x_ring, hue=y, legend=False)
+
+        sns.barplot(sorted_norm_improvs1,      ax=axes_right[0], palette=pal, x=y,y=x1, hue=y, legend=False)
+        sns.barplot(sorted_norm_improvs1_ring, ax=axes_right[1], palette=pal_ring, x=y, y=x1_ring, hue=y, legend=False)
+
+        axes = [
+            [axes_left[0], axes_right[0]],
+            [axes_left[1], axes_right[1]],
+        ]
         for j in range(len(axes)):
             for i in range(len(axes[j])):
                 ax = axes[j][i]
-                fig.suptitle(f"Normed overall improvements w: {params.w}, c1: {params.c1}, c2: {params.c2}")
+                ax.margins(x=0.04)
                 if j == 0 and i == 0:
-                    ax.set_title(f"normal PSO best: {pso.global_best_index}")
+                    ax.set_title(f"GBest")
                 if j == 0 and i == 1:
-                    ax.set_title(f"normal PSO decreasing best: {pso.global_best_index}")
+                    ax.set_title(f"GBest")
                 if j == 1 and i == 0:
-                    ax.set_title(f"ring PSO best: {pso_ring.global_best_index}")
+                    ax.set_title(f"LBest")
                 if j == 1 and i == 1:
-                    ax.set_title(f"ring PSO decreasing best: {pso_ring.global_best_index}")
-                ax.set_xlabel("Index of particle")
+                    ax.set_title(f"LBest")
+                #ax.set_xlabel("Index of particle")
 
     def evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring):
         plt.clf()
@@ -64,63 +94,55 @@ class Evaluation:
             for line, label in zip(ax.lines, labels):
                 if label in to_remove:
                     line.set_linewidth(1)
-            filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
+            if i == 0:
+                filtered = [(h, l) if l == str(pso.global_best_index) else (h,"lol") for h, l in zip(handles, labels) if l not in to_remove]
+            else:
+                filtered = [(h, l) if l == str(pso.global_best_index) else (h,"lol") for h, l in zip(handles, labels) if l not in to_remove]
             handles, labels = zip(*filtered)
             ax.legend(handles, labels)
-            fig.suptitle(f" Rank evaluation w: {params.w}, c1: {params.c1}, c2: {params.c2}")
             if i == 0:
-                ax.set_title(f"normal PSO best: {pso.global_best_index}")
+                ax.set_title(f"GBest")
             else:
-                ax.set_title(f"ring PSO best: {pso_ring.global_best_index}")
-            ax.set_xlabel("Generation")
+                ax.set_title(f"LBest")
+            if i == 1:
+                ax.set_xlabel("Time Step")
         
     def evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring):
         plt.clf()
         grey_color = "#00000010"
         standard_pal = sns.color_palette()
-        pal = {index: standard_pal[0] if index == best_improvs else standard_pal[1] if index == pso.global_best_index else grey_color for index in data_improvs.columns}
-        pal_ring = {index: standard_pal[0] if index == best_improvs_ring else standard_pal[1] if index == pso_ring.global_best_index else grey_color for index in data_improvs_ring.columns}
+        pal = {index: standard_pal[0] if index == best_improvs else standard_pal[1] if index == pso.global_best_index else standard_pal[2] if index==best_improvs1 else grey_color for index in data_improvs.columns}
+        pal_ring = {index: standard_pal[0] if index == best_improvs_ring else standard_pal[1] if index == pso_ring.global_best_index else standard_pal[2] if index==best_improvs1_ring else grey_color for index in data_improvs_ring.columns}
         pal1 = {index: standard_pal[0] if index == best_improvs1 else standard_pal[1] if index == pso.global_best_index else grey_color for index in data_improvs1.columns}
         pal1_ring = {index: standard_pal[0] if index == best_improvs1_ring else standard_pal[1] if index == pso_ring.global_best_index else grey_color for index in data_improvs1_ring.columns}
 
-        fig, axes = plt.subplots(2,2, figsize=(17,11))
+        fig, axes = plt.subplots(2,1)
+        plt.subplots_adjust(bottom=0.1, top=0.9, wspace=0.4, hspace=0.4)
         #plt.yscale("symlog", linthresh=10)
-        sns.lineplot(data_improvs, ax=axes[0][0], palette=pal, dashes=False)
-        sns.lineplot(data_improvs_ring, ax=axes[1][0], palette=pal_ring, dashes=False)
-        sns.lineplot(data_improvs1, ax=axes[0][1], palette=pal1, dashes=False)
-        sns.lineplot(data_improvs1_ring, ax=axes[1][1], palette=pal1_ring, dashes=False)
-
+        sns.lineplot(data_improvs, ax=axes[0], palette=pal, dashes=False)
+        sns.lineplot(data_improvs_ring, ax=axes[1], palette=pal_ring, dashes=False)
         for j in range(len(axes)):
-            for i in range(len(axes[j])):
-                ax = axes[j][i]
-                handles, labels = ax.get_legend_handles_labels()
-                to_remove = {}
-                if i == 0 and j == 0:
-                    to_remove = {str(x) if x != best_improvs and x != pso.global_best_index else "" for x in data_improvs.columns}
-                if j == 1 and i == 0:
-                    to_remove = {str(x) if x != best_improvs_ring and x != pso_ring.global_best_index else "" for x in data_improvs_ring.columns}
-                if j == 0 and i == 1:
-                    to_remove = {str(x) if x != best_improvs1 and x != pso.global_best_index else "" for x in data_improvs1.columns}
-                if j == 1 and i == 1:
-                    to_remove = {str(x) if x != best_improvs1_ring and x != pso_ring.global_best_index else "" for x in data_improvs1_ring.columns}
+            ax = axes[j]
+            handles, labels = ax.get_legend_handles_labels()
+            to_remove = {}
+            if j == 0:
+                to_remove = {str(x) if x != best_improvs and x != pso.global_best_index and x != best_improvs1 else "" for x in data_improvs.columns}
+            if j == 1:
+                to_remove = {str(x) if x != best_improvs_ring and x != pso_ring.global_best_index and x != best_improvs1_ring else "" for x in data_improvs_ring.columns}
 
-                for line, label in zip(ax.lines, labels):
-                    if label in to_remove:
-                        line.set_linewidth(1)
-                filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
-                handles, labels = zip(*filtered)
-                ax.legend(handles, labels)
+            for line, label in zip(ax.lines, labels):
+                if label in to_remove:
+                    line.set_linewidth(1)
+            filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
+            handles, labels = zip(*filtered)
+            ax.legend(handles, labels)
 
-                fig.suptitle(f"Evaluation improvs w: {params.w}, c1: {params.c1}, c2: {params.c2}")
-                if j == 0 and i == 0:
-                    ax.set_title(f"normal PSO best: {pso.global_best_index}")
-                if j == 0 and i == 1:
-                    ax.set_title(f"normal PSO decreasing best: {pso.global_best_index}")
-                if j == 1 and i == 0:
-                    ax.set_title(f"ring PSO best: {pso_ring.global_best_index}")
-                if j == 1 and i == 1:
-                    ax.set_title(f"ring PSO decreasing best: {pso_ring.global_best_index}")
-                ax.set_xlabel("Generation")
+            if j == 0:
+                ax.set_title("GBest")
+            if j == 1:
+                ax.set_title("LBest")
+            if j==1:
+                ax.set_xlabel("Time step")
 
     def evaluate_shared(pso_ring):
         plt.clf()

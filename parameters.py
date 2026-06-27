@@ -3,6 +3,6 @@ class params:
     c1         = 1.4
     c2         = 1.4
     popsize    = 20
-    bounds     = 10
+    bounds     = 30
     iterations = 25
     dimensions = 2

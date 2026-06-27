@@ -59,7 +59,7 @@ class Particle:
 
     def check_vel(self, vel):
         norm = np.linalg.norm(vel)
-        max_v = params.bounds / 2
+        max_v = (params.bounds*2)*0.1
         vel = vel if norm <= max_v else vel * max_v / norm
         return vel
 
