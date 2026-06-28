@@ -307,7 +307,7 @@ if __name__ == '__main__':
             Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
             plt.savefig(f"evaluation/normed_improvs.png", dpi=300)
 
-            Evaluation.evaluate_shared(pso_ring)
+            Evaluation.evaluate_shared(pso_ring, sorted_norm_improvs_ring)
             plt.savefig(f"evaluation/shared.png", dpi=250)
         #plt.show()
 

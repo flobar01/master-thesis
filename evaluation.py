@@ -144,11 +144,19 @@ class Evaluation:
             if j==1:
                 ax.set_xlabel("Time step")
 
-    def evaluate_shared(pso_ring):
+    def evaluate_shared(pso_ring, sorted_improvs):
         plt.clf()
         plt.figure()
         shared_data = {}
         for i in pso_ring.particles:
             shared_data[i.index] = i.shared_best
-        ax = sns.barplot(shared_data)
+        x = list(shared_data.keys())
+        y = list(shared_data.values())
+        sort = list(sorted_improvs.keys())
+        standard_pal = sns.color_palette()
+        pal = {index: standard_pal[1] if index == pso_ring.global_best_index else standard_pal[0] for index in shared_data.keys()}
+        print(sort)
+        sort.reverse()
+        print(sort)
+        ax = sns.barplot(shared_data, x=x, y=y, order=sort, palette=pal, hue=x, legend=False)
         ax.set_ylabel("Number of shares")
