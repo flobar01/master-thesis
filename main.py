@@ -110,7 +110,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None):
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
         end_pos.append(part.history[-1].pos)
-    shrink_ratio = 0.6
+    shrink_ratio = 0.3
     for i in range(params.iterations):
         fitness_particles = {}
         current_improvs = {}

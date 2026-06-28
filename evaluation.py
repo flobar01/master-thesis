@@ -9,18 +9,13 @@ class Evaluation:
 
     def evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring):
         plt.clf()
-        fig, axes = plt.subplots(ncols=2, figsize=(12.08, 7.2))
-        sns.lineplot(global_fitness_history, ax=axes[0])
-        sns.lineplot(global_fitness_history_ring, ax=axes[1])
-        for i in range(2):
-            ax = axes[i]
-            ax.set_ylim(0,1000)
+        fig = plt.figure()
+        ax = sns.lineplot(global_fitness_history, label="GBest")
+        sns.lineplot(global_fitness_history_ring, label="LBest")
+        ax.set_ylim(0,100)
             #fig.suptitle(f"Global accumulated fitness")
-            if i == 0:
-                ax.set_title(f"GBest")
-            else:
-                ax.set_title(f"LBest")
-            ax.set_xlabel("Time Step")
+        ax.set_xlabel("Time Step")
+        ax.set_ylabel("Global Fitness")
 
     def evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring):
         plt.clf()
@@ -30,7 +25,9 @@ class Evaluation:
         plt.subplots_adjust(bottom=0.1, top=0.9, wspace=0.4, hspace=0.4)
         standard_pal = sns.color_palette()
         pal = {index: standard_pal[1] if str(index) == str(pso.global_best_index) else standard_pal[0] for index in sorted_norm_improvs.keys() }
-        pal_ring = {index: standard_pal[1] if str(index) == str(pso_ring.global_best_index) else standard_pal[0] for index in sorted_norm_improvs.keys() }
+        pal_ring = {index: standard_pal[1] if index == pso_ring.global_best_index else standard_pal[0] for index in sorted_norm_improvs_ring.keys() }
+        pal1 = {index: standard_pal[1] if str(index) == str(pso.global_best_index) else standard_pal[0] for index in sorted_norm_improvs1.keys() }
+        pal1_ring = {index: standard_pal[1] if index == pso_ring.global_best_index else standard_pal[0] for index in sorted_norm_improvs1_ring.keys() }
         # Left column
         left = subfigs[0]
         left.suptitle("Accumulated Impact Metric")
@@ -45,13 +42,16 @@ class Evaluation:
         x_ring = list(sorted_norm_improvs_ring.values())
         x1_ring = list(sorted_norm_improvs1_ring.values())
 
-        y=list(sorted_norm_improvs.keys())
+        y = list(sorted_norm_improvs.keys())
+        y1 = list(sorted_norm_improvs1.keys())
+        y_ring = list(sorted_norm_improvs_ring.keys())
+        y1_ring = list(sorted_norm_improvs1_ring.keys())
         # Plot
         sns.barplot(sorted_norm_improvs,      ax=axes_left[0], palette=pal,x=y, y=x, hue=y, legend=False)
-        sns.barplot(sorted_norm_improvs_ring, ax=axes_left[1], palette=pal_ring, x=y, y=x_ring, hue=y, legend=False)
+        sns.barplot(sorted_norm_improvs_ring, ax=axes_left[1], palette=pal_ring, x=y_ring, y=x_ring, hue=y_ring, legend=False)
 
-        sns.barplot(sorted_norm_improvs1,      ax=axes_right[0], palette=pal, x=y,y=x1, hue=y, legend=False)
-        sns.barplot(sorted_norm_improvs1_ring, ax=axes_right[1], palette=pal_ring, x=y, y=x1_ring, hue=y, legend=False)
+        sns.barplot(sorted_norm_improvs1,      ax=axes_right[0], palette=pal1, x=y1,y=x1, hue=y1, legend=False)
+        sns.barplot(sorted_norm_improvs1_ring, ax=axes_right[1], palette=pal1_ring, x=y1_ring, y=x1_ring, hue=y1_ring, legend=False)
 
         axes = [
             [axes_left[0], axes_right[0]],
@@ -151,5 +151,4 @@ class Evaluation:
         for i in pso_ring.particles:
             shared_data[i.index] = i.shared_best
         ax = sns.barplot(shared_data)
-        ax.set_xlabel("Index")
-        ax.set_ylabel("# particle shared global best")
+        ax.set_ylabel("Number of shares")
