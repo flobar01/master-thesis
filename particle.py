@@ -50,7 +50,7 @@ class Particle:
             new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
-            #self.clamp()
+            self.clamp()
             self.check_fitness()
             last_fitness = self.history[-1].fitness
             entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, last_fitness - self.fitness)

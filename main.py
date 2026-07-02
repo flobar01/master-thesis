@@ -236,8 +236,38 @@ if __name__ == '__main__':
     acc_improvs_lbest = []
     dec_improvs_gbest = []
     dec_improvs_lbest = []
-    while runs < 10:
-        values = value_sets[0]
+    fitness_data = {
+        "value_set":     [],
+        "GBest": [],
+        "LBest": [],
+        "run":           []
+    }
+    for i in range(len(value_sets)):
+        values = value_sets[i]
+        params.w = values[0]
+        params.c1 = values[1]
+        params.c2 = values[2]
+        for run in range(31):    
+            to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs)
+            to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
+            fitness_data["value_set"].append(f"Set {i}")
+            fitness_data["GBest"].append(pso.global_best)
+            fitness_data["LBest"].append(pso_ring.global_best)
+            fitness_data["run"].append(run)
+    df_fitness =  pd.DataFrame(fitness_data)
+    df_long = df_fitness.melt(
+        id_vars=["value_set", "run"],
+        value_vars=["GBest", "LBest"],
+        var_name="Implementation",
+        value_name="fitness"
+    )
+    ax = sns.boxplot(x="value_set", y="fitness", hue="Implementation", data=df_long, log_scale=True)
+    plt.xlabel("Parameter Set")
+    plt.ylabel("Final Fitness")
+    plt.savefig(f"zeigdawg.png", dpi=300)
+    plt.show()
+    while runs < 0:
+        values = value_sets[1]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
@@ -268,8 +298,6 @@ if __name__ == '__main__':
         to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
         if pso_ring.global_best > 1:
             continue
-        else:
-            runs += 1
         improvs_array_ring = {}
         improvs_array_ring1 = {}
         ranks_array_ring = {}
@@ -292,11 +320,26 @@ if __name__ == '__main__':
                 ranks_array_ring[key].append(current_ranks_ring[key])
             global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
         
-        acc_improvs_gbest.append(sorted_norm_improvs[pso.global_best_index])
-        dec_improvs_gbest.append(sorted_norm_improvs1[pso.global_best_index])
+        worst_starting = 0
+        worst_starting_lbest = 0
+
+        for idx in range(20):
+            ranks = ranks_array[idx]
+            if ranks[0] == 20:
+                worst_starting = idx
+                break
+
+        for idx in range(20):
+            ranks = ranks_array_ring[idx]
+            if ranks[0] == 20:
+                worst_starting_lbest = idx
+                break
         
-        acc_improvs_lbest.append(sorted_norm_improvs_ring[pso_ring.global_best_index])
-        dec_improvs_lbest.append(sorted_norm_improvs1_ring[pso_ring.global_best_index])
+        acc_improvs_gbest.append(sorted_norm_improvs[worst_starting])
+        dec_improvs_gbest.append(sorted_norm_improvs1[worst_starting])
+        
+        acc_improvs_lbest.append(sorted_norm_improvs_ring[worst_starting_lbest])
+        dec_improvs_lbest.append(sorted_norm_improvs1_ring[worst_starting_lbest])
         
         for i in pso_ring.particles:
             shared_best_ring[i.index] = i.shared_best
@@ -308,25 +351,71 @@ if __name__ == '__main__':
             data_improvs1 = pd.DataFrame.from_dict(improvs_array1)
             data_improvs_ring = pd.DataFrame.from_dict(improvs_array_ring)
             data_improvs1_ring = pd.DataFrame.from_dict(improvs_array_ring1)
+
             standard_pal = sns.color_palette()
-            sns.set_theme(style="darkgrid") 
+            sns.set_theme(style="darkgrid")
+            folder =  f"evaluation/run{runs}"
             #plt.show()
-            if not os.path.exists(f"evaluation_run{runs}"):
-                os.mkdir(f"evaluation_run{runs}")
+
+            if not os.path.exists("evaluation"):
+                os.mkdir("evaluation")
+
+            if not os.path.exists(folder):
+                os.mkdir(f"evaluation/run{runs}")
+            with open(f"{folder}/end_result.txt", "w") as f:
+                f.write(f"fitness gbest: {pso.global_best}\n")
+                f.write(f"fitness lbest: {pso_ring.global_best}")
+
             Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
-            plt.savefig(f"evaluation_run{runs}/fitness.png", dpi=300)
+            plt.savefig(f"{folder}/fitness.png", dpi=300)
             
             Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
-            plt.savefig(f"evaluation/improvs.png", dpi=300)
+            plt.savefig(f"{folder}/improvs.png", dpi=300)
             
             Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-            plt.savefig(f"evaluation/ranks.png", dpi=250)
+            plt.savefig(f"{folder}/ranks.png", dpi=250)
 
             Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
-            plt.savefig(f"evaluation/normed_improvs.png", dpi=300)
+            plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
 
             Evaluation.evaluate_shared(pso_ring, sorted_norm_improvs_ring)
-            plt.savefig(f"evaluation/shared.png", dpi=250)
+            plt.savefig(f"{folder}/shared.png", dpi=250)
+        runs += 1
+
+    median_for_gbest_acc = np.median(np.array(acc_improvs_gbest))
+    median_for_lbest_acc = np.median(np.array(acc_improvs_lbest))
+    median_for_gbest_dec = np.median(np.array(dec_improvs_gbest))
+    median_for_lbest_dec = np.median(np.array(dec_improvs_lbest))
+    
+    index_median_gbest_acc = 0
+
+    for i in range(len(acc_improvs_gbest)):
+        if acc_improvs_gbest[i] == median_for_gbest_acc:
+            index_median_gbest_acc = i+1
+
+    index_median_gbest_dec = 0
+
+    for i in range(len(dec_improvs_gbest)):
+        if dec_improvs_gbest[i] == median_for_gbest_dec:
+            index_median_gbest_dec = i
+    
+    index_median_lbest_acc = 0
+
+    for i in range(len(acc_improvs_lbest)):
+        if acc_improvs_lbest[i] == median_for_lbest_acc:
+            index_median_lbest_acc = i
+
+    index_median_lbest_dec = 0
+
+    for i in range(len(dec_improvs_lbest)):
+        if dec_improvs_lbest[i] == median_for_lbest_dec:
+            index_median_lbest_dec = i
+
+    with open("evaluation/results.txt", "w") as f:
+        f.write(f"median gbest acc: {index_median_gbest_acc}\n")
+        f.write(f"median gbest dec: {index_median_gbest_dec}\n")
+        f.write(f"median lbest acc: {index_median_lbest_acc}\n")
+        f.write(f"median lbest dec: {index_median_lbest_dec}\n")
         #plt.show()
     if graphical:
         #plt.ion()
