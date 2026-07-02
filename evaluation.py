@@ -12,9 +12,9 @@ class Evaluation:
         fig = plt.figure()
         ax = sns.lineplot(global_fitness_history, label="GBest")
         sns.lineplot(global_fitness_history_ring, label="LBest")
-        ax.set_ylim(0,100)
             #fig.suptitle(f"Global accumulated fitness")
         ax.set_xlabel("Time Step")
+        ax.set_yscale('log')
         ax.set_ylabel("Global Fitness")
 
     def evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring):
@@ -95,9 +95,9 @@ class Evaluation:
                 if label in to_remove:
                     line.set_linewidth(1)
             if i == 0:
-                filtered = [(h, l) if l == str(pso.global_best_index) else (h,"lol") for h, l in zip(handles, labels) if l not in to_remove]
+                filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
             else:
-                filtered = [(h, l) if l == str(pso.global_best_index) else (h,"lol") for h, l in zip(handles, labels) if l not in to_remove]
+                filtered = [(h, l) for h, l in zip(handles, labels) if l not in to_remove]
             handles, labels = zip(*filtered)
             ax.legend(handles, labels)
             if i == 0:
@@ -155,8 +155,6 @@ class Evaluation:
         sort = list(sorted_improvs.keys())
         standard_pal = sns.color_palette()
         pal = {index: standard_pal[1] if index == pso_ring.global_best_index else standard_pal[0] for index in shared_data.keys()}
-        print(sort)
         sort.reverse()
-        print(sort)
         ax = sns.barplot(shared_data, x=x, y=y, order=sort, palette=pal, hue=x, legend=False)
         ax.set_ylabel("Number of shares")

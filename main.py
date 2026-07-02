@@ -3,6 +3,7 @@ import numpy as np
 from pso import PSO
 from pso_ring import PSO_Ring
 from os import environ
+import os
 import math
 from parameters import params
 import pandas as pd 
@@ -65,7 +66,7 @@ def flatten_improvs_dict(all_fitness_improvs):
 
     return processed
 
-def run_pso(to_remove, first_run, using_ring, start_poses=None):
+def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     pso = None
     if using_ring:
         pso = PSO_Ring()
@@ -110,7 +111,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None):
         histories.append(part.history)
         start_pos.append(part.history[0].pos)
         end_pos.append(part.history[-1].pos)
-    shrink_ratio = 0.3
+    shrink_ratio = 0.6
     for i in range(params.iterations):
         fitness_particles = {}
         current_improvs = {}
@@ -184,7 +185,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None):
             if occurences[i] == 0 and len(to_remove) < MAX_TO_REMOVE:
                 to_remove.append(i)
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
-        np.save("saves/start_pos", start_pos)
+        np.save(f"saves/start_pos_{run_number}", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
     
     processed = flatten_improvs_dict(all_fitness_improvs)
@@ -228,14 +229,19 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None):
 
 if __name__ == '__main__':
     debug = True
+    runs = 0
     graphical = not True
     value_sets = [[0.5, 1.4, 1.4], [0.5, 1.9, 1.9], [0.7, 1.4, 1.4], [0.7, 1.9, 1.9]]
-    for i in range(1):
-        values = value_sets[i]
+    acc_improvs_gbest = []
+    acc_improvs_lbest = []
+    dec_improvs_gbest = []
+    dec_improvs_lbest = []
+    while runs < 10:
+        values = value_sets[0]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
-        to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False)
+        to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs)
         improvs_array = {}
         improvs_array1 = {}
         ranks_array = {}
@@ -257,9 +263,13 @@ if __name__ == '__main__':
                 improvs_array1[key].append(current_improvs1[key])
                 ranks_array[key].append(current_ranks[key])
             global_rank_history.append(current_ranks[pso.global_best_index])
-        
+
             
-        to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], True, True, positions_start)
+        to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
+        if pso_ring.global_best > 1:
+            continue
+        else:
+            runs += 1
         improvs_array_ring = {}
         improvs_array_ring1 = {}
         ranks_array_ring = {}
@@ -282,8 +292,15 @@ if __name__ == '__main__':
                 ranks_array_ring[key].append(current_ranks_ring[key])
             global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
         
+        acc_improvs_gbest.append(sorted_norm_improvs[pso.global_best_index])
+        dec_improvs_gbest.append(sorted_norm_improvs1[pso.global_best_index])
+        
+        acc_improvs_lbest.append(sorted_norm_improvs_ring[pso_ring.global_best_index])
+        dec_improvs_lbest.append(sorted_norm_improvs1_ring[pso_ring.global_best_index])
+        
         for i in pso_ring.particles:
             shared_best_ring[i.index] = i.shared_best
+
         if not graphical:
             data_ranks = pd.DataFrame.from_dict(ranks_array)
             data_ranks_ring = pd.DataFrame.from_dict(ranks_array_ring)
@@ -294,9 +311,10 @@ if __name__ == '__main__':
             standard_pal = sns.color_palette()
             sns.set_theme(style="darkgrid") 
             #plt.show()
-            
+            if not os.path.exists(f"evaluation_run{runs}"):
+                os.mkdir(f"evaluation_run{runs}")
             Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
-            plt.savefig(f"evaluation/fitness.png", dpi=300)
+            plt.savefig(f"evaluation_run{runs}/fitness.png", dpi=300)
             
             Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
             plt.savefig(f"evaluation/improvs.png", dpi=300)
@@ -310,7 +328,6 @@ if __name__ == '__main__':
             Evaluation.evaluate_shared(pso_ring, sorted_norm_improvs_ring)
             plt.savefig(f"evaluation/shared.png", dpi=250)
         #plt.show()
-
     if graphical:
         #plt.ion()
         fig, ax = plt.subplots()
