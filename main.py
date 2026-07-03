@@ -12,6 +12,7 @@ import matplotlib.colors as mcolors
 import matplotlib.animation as animation
 import seaborn as sns
 from evaluation import Evaluation
+import random
 
 MAX_TO_REMOVE = 3
 def distance(first, second):
@@ -230,8 +231,14 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
 if __name__ == '__main__':
     debug = True
     runs = 0
-    graphical = not True
+    graphical = True
     value_sets = [[0.5, 1.4, 1.4], [0.5, 1.9, 1.9], [0.7, 1.4, 1.4], [0.7, 1.9, 1.9]]
+    test_starting_pos = []
+    for i in range(31):
+        run = []
+        for j in range(params.popsize):
+            run.append(np.array([random.randint(-params.bounds, params.bounds), random.randint(-params.bounds, params.bounds)]))
+        test_starting_pos.append(run)
     acc_improvs_gbest = []
     acc_improvs_lbest = []
     dec_improvs_gbest = []
@@ -242,14 +249,14 @@ if __name__ == '__main__':
         "LBest": [],
         "run":           []
     }
-    for i in range(len(value_sets)):
+    '''for i in range(len(value_sets)):
         values = value_sets[i]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
-        for run in range(31):    
-            to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs)
-            to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
+        for run in range(31):
+            to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=test_starting_pos[run])
+            to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=test_starting_pos[run])
             fitness_data["value_set"].append(f"Set {i}")
             fitness_data["GBest"].append(pso.global_best)
             fitness_data["LBest"].append(pso_ring.global_best)
@@ -261,13 +268,14 @@ if __name__ == '__main__':
         var_name="Implementation",
         value_name="fitness"
     )
+    sns.set_theme(style="ticks", palette="pastel")
     ax = sns.boxplot(x="value_set", y="fitness", hue="Implementation", data=df_long, log_scale=True)
     plt.xlabel("Parameter Set")
     plt.ylabel("Final Fitness")
     plt.savefig(f"zeigdawg.png", dpi=300)
-    plt.show()
-    while runs < 0:
-        values = value_sets[1]
+    plt.show()'''
+    while runs < 1:
+        values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
@@ -296,7 +304,7 @@ if __name__ == '__main__':
 
             
         to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
-        if pso_ring.global_best > 1:
+        if pso_ring.global_best > 2:
             continue
         improvs_array_ring = {}
         improvs_array_ring1 = {}
@@ -437,7 +445,7 @@ if __name__ == '__main__':
             x_pos = []
             y_pos = []
             improvs = []
-            for part in pso_ring.particles:
+            for part in pso.particles:
                 current = part.history[i].pos
                 best_idx = part.history[i].best_idx
                 x_pos.append(current[0])

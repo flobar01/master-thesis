@@ -38,7 +38,7 @@ class PSO:
 
     def init_population(self, to_remove, start_poses=None):
         idx = 0
-        made_up = not True
+        made_up = True
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
@@ -51,9 +51,9 @@ class PSO:
                                 pos = np.append(pos, rand)
                             else:
                                 if i == 0:
-                                    pos = np.array([-5, 3])
+                                    pos = np.array([4, 2])
                                 else:
-                                    pos = np.array([-3, (10-i)/2])
+                                    pos = np.array([3, (10-i)/2])
                                 '''if i == 0:
                                     pos = np.append(pos,-1)
                                 else:
