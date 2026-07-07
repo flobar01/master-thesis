@@ -249,7 +249,7 @@ if __name__ == '__main__':
         "LBest": [],
         "run":           []
     }
-    '''for i in range(len(value_sets)):
+    for i in range(len(value_sets)):
         values = value_sets[i]
         params.w = values[0]
         params.c1 = values[1]
@@ -257,7 +257,14 @@ if __name__ == '__main__':
         for run in range(31):
             to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=test_starting_pos[run])
             to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=test_starting_pos[run])
-            fitness_data["value_set"].append(f"Set {i}")
+            if i == 0:
+                fitness_data["value_set"].append(f"Low Inertia \n Good Learning")
+            if i == 1:
+                fitness_data["value_set"].append(f"Low Inertia \n High Learning")
+            if i == 2:
+                fitness_data["value_set"].append(f"High Inertia \n Good Learning")
+            if i == 3:
+                fitness_data["value_set"].append(f"High Inertia \n High Learning")
             fitness_data["GBest"].append(pso.global_best)
             fitness_data["LBest"].append(pso_ring.global_best)
             fitness_data["run"].append(run)
@@ -271,10 +278,12 @@ if __name__ == '__main__':
     sns.set_theme(style="ticks", palette="pastel")
     ax = sns.boxplot(x="value_set", y="fitness", hue="Implementation", data=df_long, log_scale=True)
     plt.xlabel("Parameter Set")
-    plt.ylabel("Final Fitness")
-    plt.savefig(f"zeigdawg.png", dpi=300)
-    plt.show()'''
-    while runs < 1:
+    plt.ylabel("Best Fitness")
+    plt.tight_layout()
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    plt.savefig(f"fitness_box.png", dpi=300, bbox_inches='tight')
+    plt.show()
+    while runs < 0:
         values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
