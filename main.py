@@ -250,7 +250,7 @@ if __name__ == '__main__':
         "LBest": [],
         "run":           []
     }
-    for i in range(len(value_sets)):
+    '''for i in range(len(value_sets)):
         values = value_sets[i]
         params.w = values[0]
         params.c1 = values[1]
@@ -283,16 +283,16 @@ if __name__ == '__main__':
     plt.tight_layout()
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.savefig(f"fitness_box.png", dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.show()'''
     while runs < 0:
         values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
-        #start_positions = np.load(f"saves/start_pos_{runs}.npy")
-        #if start_positions is None:
-        #    break
-        to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs)
+        start_positions = np.load(f"saves copy/start_pos_{runs}.npy")
+        if start_positions is None:
+            break
+        to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=start_positions)
         improvs_array = {}
         improvs_array1 = {}
         ranks_array = {}
@@ -316,7 +316,7 @@ if __name__ == '__main__':
             global_rank_history.append(current_ranks[pso.global_best_index])
 
             
-        to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
+        to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=start_positions)
         if pso_ring.global_best > 2:
             continue
         improvs_array_ring = {}
@@ -414,6 +414,7 @@ if __name__ == '__main__':
 
             Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
             plt.savefig(f"{folder}/shared.png", dpi=250)
+            plt.close('all')
         runs += 1
 
     median_for_gbest_acc = np.median(np.array(acc_improvs_gbest))

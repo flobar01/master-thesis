@@ -39,7 +39,6 @@ class PSO:
     def init_population(self, to_remove, start_poses=[]):
         idx = 0
         made_up = not True
-        start_poses = []
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
