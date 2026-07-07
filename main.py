@@ -13,6 +13,7 @@ import matplotlib.animation as animation
 import seaborn as sns
 from evaluation import Evaluation
 import random
+import pickle
 
 MAX_TO_REMOVE = 3
 def distance(first, second):
@@ -59,7 +60,7 @@ def flatten_improvs_dict(all_fitness_improvs):
     for generation in all_fitness_improvs:
 
         processed_generation = {
-            k: np.log1p(min(v, cap))
+            k: np.sign(v) * np.log1p(abs(min(v, cap)))
             for k, v in generation.items()
         }
 
@@ -231,7 +232,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
 if __name__ == '__main__':
     debug = True
     runs = 0
-    graphical = True
+    graphical = not True
     value_sets = [[0.5, 1.4, 1.4], [0.5, 1.9, 1.9], [0.7, 1.4, 1.4], [0.7, 1.9, 1.9]]
     test_starting_pos = []
     for i in range(31):
@@ -288,6 +289,9 @@ if __name__ == '__main__':
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
+        #start_positions = np.load(f"saves/start_pos_{runs}.npy")
+        #if start_positions is None:
+        #    break
         to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs)
         improvs_array = {}
         improvs_array1 = {}
@@ -360,7 +364,6 @@ if __name__ == '__main__':
         
         for i in pso_ring.particles:
             shared_best_ring[i.index] = i.shared_best
-
         if not graphical:
             data_ranks = pd.DataFrame.from_dict(ranks_array)
             data_ranks_ring = pd.DataFrame.from_dict(ranks_array_ring)
@@ -368,34 +371,48 @@ if __name__ == '__main__':
             data_improvs1 = pd.DataFrame.from_dict(improvs_array1)
             data_improvs_ring = pd.DataFrame.from_dict(improvs_array_ring)
             data_improvs1_ring = pd.DataFrame.from_dict(improvs_array_ring1)
+            shared_data = {}
+            for i in pso_ring.particles:
+                shared_data[i.index] = i.shared_best
+
+            saving = {"pso_global_best": pso.global_best_index, "pso_ring_global_best": pso_ring.global_best_index, "global_fitness_history": global_fitness_history, "global_fitness_history_ring": global_fitness_history_ring, 
+                "sorted_norm_improvs": sorted_norm_improvs, "sorted_norm_improvs_ring": sorted_norm_improvs_ring, "sorted_norm_improvs1": sorted_norm_improvs1, 
+                "sorted_norm_improvs1_ring": sorted_norm_improvs1_ring, "data_ranks": data_ranks, "data_ranks_ring": data_ranks_ring, "best_improvs": best_improvs, "best_improvs1": best_improvs1,
+                "best_improvs_ring": best_improvs_ring, "best_improvs1_ring": best_improvs1_ring, "data_improvs": data_improvs, "data_improvs1": data_improvs1, "data_improvs_ring": data_improvs_ring,
+                "data_improvs1_ring": data_improvs1_ring, "shared_best": shared_data}
 
             standard_pal = sns.color_palette()
             sns.set_theme(style="darkgrid")
-            folder =  f"evaluation/run{runs}"
+            folder =  f"evaluation/run{runs+1}"
             #plt.show()
+
 
             if not os.path.exists("evaluation"):
                 os.mkdir("evaluation")
 
             if not os.path.exists(folder):
-                os.mkdir(f"evaluation/run{runs}")
+                os.mkdir(f"evaluation/run{runs+1}")
+            
+            with open(f"{folder}/data.pkl", "wb") as data_saving:
+                pickle.dump(saving, data_saving, pickle.HIGHEST_PROTOCOL)
+            
             with open(f"{folder}/end_result.txt", "w") as f:
                 f.write(f"fitness gbest: {pso.global_best}\n")
                 f.write(f"fitness lbest: {pso_ring.global_best}")
 
-            Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring, pso, pso_ring)
+            Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             
-            Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso, pso_ring)
+            Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
             plt.savefig(f"{folder}/improvs.png", dpi=300)
             
-            Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
+            Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
             plt.savefig(f"{folder}/ranks.png", dpi=250)
 
-            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso, pso_ring)
+            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
             plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
 
-            Evaluation.evaluate_shared(pso_ring, sorted_norm_improvs_ring)
+            Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
             plt.savefig(f"{folder}/shared.png", dpi=250)
         runs += 1
 
@@ -414,19 +431,19 @@ if __name__ == '__main__':
 
     for i in range(len(dec_improvs_gbest)):
         if dec_improvs_gbest[i] == median_for_gbest_dec:
-            index_median_gbest_dec = i
+            index_median_gbest_dec = i+1
     
     index_median_lbest_acc = 0
 
     for i in range(len(acc_improvs_lbest)):
         if acc_improvs_lbest[i] == median_for_lbest_acc:
-            index_median_lbest_acc = i
+            index_median_lbest_acc = i+1
 
     index_median_lbest_dec = 0
 
     for i in range(len(dec_improvs_lbest)):
         if dec_improvs_lbest[i] == median_for_lbest_dec:
-            index_median_lbest_dec = i
+            index_median_lbest_dec = i+1
 
     with open("evaluation/results.txt", "w") as f:
         f.write(f"median gbest acc: {index_median_gbest_acc}\n")

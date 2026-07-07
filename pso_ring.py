@@ -59,12 +59,12 @@ class PSO_Ring:
 
     def init_population(self, to_remove, start_poses=None):
         idx = 0
-        made_up = True
+        made_up = not True
         poses = np.load("saves/start_pos.npy")
         for i in range(params.popsize):
             if i not in to_remove:
                 if len(to_remove) == 0:
-                    if start_poses == None:
+                    if len(start_poses) < params.popsize:
                         pos = np.array([])
                         for dim in range(params.dimensions):
                             if not made_up:
