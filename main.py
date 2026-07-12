@@ -80,8 +80,8 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     end_pos    = []
     occurences = {}
     occurences1 = {}
-    fitness_improvements = {}
-    fitness_improvements1 = {}
+    fitness_improvements = {p.index: 0 for p in pso.particles}
+    fitness_improvements1 = {p.index: 0 for p in pso.particles}
     norm_fitness_improvs = {}
     all_fitness_improvs = []
     all_fitness_improvs1 = []
@@ -89,6 +89,8 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     ranks = {}
     to_remove  = []
     positions_start = []
+    weight_social = 0.7
+    weight_cognitive = 0.3
     for p in pso.particles:
         positions_start.append(p.pos)
     for i in range(params.popsize):
@@ -116,8 +118,8 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     shrink_ratio = 0.6
     for i in range(params.iterations):
         fitness_particles = {}
-        current_improvs = {}
-        current_improvs1 = {}
+        current_improvs = {p.index: 0 for p in pso.particles}
+        current_improvs1 = {p.index: 0 for p in pso.particles}
         for key in fitness_improvements1.keys():
             fitness_improvements1[key] = fitness_improvements1[key] * shrink_ratio
 
@@ -129,32 +131,18 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
                     occurences1[history.best_idx] = occurences1[history.best_idx]+1
                 else:
                     occurences1.update({history.best_idx: 1})
-
-                if history.best_idx in fitness_improvements:
-                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2
-                else:
-                    fitness_improvements.update({history.best_idx: history.fitness_improvement/params.popsize * params.c2})
-                    fitness_improvements1.update({history.best_idx: history.fitness_improvement/params.popsize * params.c2})
-                if part.index in fitness_improvements:
-                    fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
-                    fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * params.c1
-                else:
-                    fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
-                    fitness_improvements1.update({part.index: history.fitness_improvement * params.c1})
                 
-                if history.best_idx in current_improvs:
-                    current_improvs[history.best_idx] = current_improvs[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                else:
-                    current_improvs.update({history.best_idx: history.fitness_improvement/params.popsize*params.c2})
-                    current_improvs1.update({history.best_idx: history.fitness_improvement/params.popsize*params.c2})
-                if part.index in current_improvs:
-                    current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
-                    current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1
-                else:
-                    current_improvs.update({part.index: history.fitness_improvement * params.c1})
-                    current_improvs1.update({part.index: history.fitness_improvement * params.c1})
+                fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2 * weight_social
+                fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2 * weight_social
+                
+                fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1 * weight_cognitive
+                fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * params.c1 * weight_cognitive
+                
+                current_improvs[history.best_idx] = current_improvs[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2 * weight_social
+                current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2 * weight_social
+                
+                current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1 * weight_cognitive
+                current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1 * weight_cognitive
         if i > 0:
             total_improvement = sum(map(abs,current_improvs.values()))
             total_improvement1 = sum(map(abs,current_improvs1.values()))
