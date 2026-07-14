@@ -5,7 +5,7 @@ import math
 
 
 class HistoryEntry:
-    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, fitness_improv=0):
+    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, personal_best, fitness_improv=0):
         self.gen = gen
         self.pos = pos
         self.inertia = inertia
@@ -19,6 +19,7 @@ class HistoryEntry:
         self.phi2 = phi2
         self.fitness = fitness
         self.fitness_improvement = fitness_improv
+        self.personal_best = personal_best
 
 class Particle:
     def __init__(self, pos, vel, pso, index, stationary = False):
@@ -37,7 +38,7 @@ class Particle:
         self.global_best_fitness_temp = self.fitness_update()
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
+        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best)
         self.history = np.append(self.history, entry)
         self.stationary = stationary
         self.shared_best = 0
@@ -61,7 +62,7 @@ class Particle:
             #print(f"{self.global_best_pos} {self.global_best_index} {self.index}")
             self.check_fitness()
             last_fitness = self.history[-1].fitness
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, last_fitness - self.fitness)
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness)
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 

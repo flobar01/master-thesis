@@ -80,8 +80,12 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     end_pos    = []
     occurences = {}
     occurences1 = {}
-    fitness_improvements = {}
-    fitness_improvements1 = {}
+    fitness_improvements = {part.index: 0 for part in pso.particles}
+    fitness_improvements1 = {part.index: 0 for part in pso.particles}
+
+    particle_portions_history = []
+    particle_portions_sum = {part.index: {part.index: 0 for part in pso.particles} for part in pso.particles}
+
     norm_fitness_improvs = {}
     all_fitness_improvs = []
     all_fitness_improvs1 = []
@@ -116,45 +120,49 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     shrink_ratio = 0.6
     for i in range(params.iterations):
         fitness_particles = {}
-        current_improvs = {}
-        current_improvs1 = {}
+
+        current_portions = {part.index: {part.index: 0 for part in pso.particles} for part in pso.particles}
+
+        current_improvs = {part.index: 0 for part in pso.particles}
+        current_improvs1 = {part.index: 0 for part in pso.particles}
         for key in fitness_improvements1.keys():
             fitness_improvements1[key] = fitness_improvements1[key] * shrink_ratio
 
         for part in pso.particles:
             if len(part.history) > 2:
                 history = part.history[i]
+                history_best = pso.particles[history.best_idx].history[i]
                 fitness_particles[part.index] = history.fitness
                 if history.best_idx in occurences1:
                     occurences1[history.best_idx] = occurences1[history.best_idx]+1
                 else:
                     occurences1.update({history.best_idx: 1})
 
-                if history.best_idx in fitness_improvements:
-                    fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                    fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2
-                else:
-                    fitness_improvements.update({history.best_idx: history.fitness_improvement/params.popsize * params.c2})
-                    fitness_improvements1.update({history.best_idx: history.fitness_improvement/params.popsize * params.c2})
-                if part.index in fitness_improvements:
-                    fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
-                    fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * params.c1
-                else:
-                    fitness_improvements.update({part.index: history.fitness_improvement * params.c1})
-                    fitness_improvements1.update({part.index: history.fitness_improvement * params.c1})
+                #particle_portions_sum[part.index].update((x, y*params.w) for x, y in particle_portions_sum[part.index].items())
+
+
+                fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
+                fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2
+                fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
+                fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * params.c1
                 
-                if history.best_idx in current_improvs:
-                    current_improvs[history.best_idx] = current_improvs[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                    current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                else:
-                    current_improvs.update({history.best_idx: history.fitness_improvement/params.popsize*params.c2})
-                    current_improvs1.update({history.best_idx: history.fitness_improvement/params.popsize*params.c2})
-                if part.index in current_improvs:
-                    current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
-                    current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1
-                else:
-                    current_improvs.update({part.index: history.fitness_improvement * params.c1})
-                    current_improvs1.update({part.index: history.fitness_improvement * params.c1})
+                current_improvs[history.best_idx] = current_improvs[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
+                current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
+                current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
+                current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1
+                if i > 0:
+                    current_portions[part.index][part.index] =  current_portions[part.index][part.index] - (params.c1) - (params.c2) + (params.c1)
+                    current_portions[part.index][history.best_idx] = current_portions[part.index][history.best_idx] + (params.c2)
+                    
+                    current_portions[part.index][part.index] = current_portions[part.index][part.index] - (params.c1) - (params.c2) + (params.c1)
+                    current_portions[part.index][history.best_idx] = current_portions[part.index][history.best_idx] + (params.c2)
+                    if len(particle_portions_history) > 1:
+                        particle_portions_sum[part.index][part.index] = particle_portions_history[-1][part.index][part.index]*params.w + particle_portions_sum[part.index][part.index] + current_portions[part.index][part.index]
+                        particle_portions_sum[part.index][history.best_idx] = particle_portions_history[-1][part.index][history.best_idx]*params.w + particle_portions_sum[part.index][history.best_idx] + current_portions[part.index][history.best_idx]
+                    else:
+                        particle_portions_sum[part.index][part.index] = particle_portions_sum[part.index][part.index] + current_portions[part.index][part.index]
+                        particle_portions_sum[part.index][history.best_idx] = particle_portions_sum[part.index][history.best_idx] + current_portions[part.index][history.best_idx]
+        
         if i > 0:
             total_improvement = sum(map(abs,current_improvs.values()))
             total_improvement1 = sum(map(abs,current_improvs1.values()))
@@ -164,8 +172,10 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
                     current_improvs[key] = current_improvs[key]
                 if total_improvement1 != 0:
                     current_improvs1[key] = current_improvs1[key]
+            particle_portions_history.append(current_portions)
         all_fitness_improvs.append(current_improvs)
         all_fitness_improvs1.append(current_improvs1)
+        
         sorted_particles = dict(sorted(fitness_particles.items(), key=lambda item: item[1]))
         rank = 1
         temp_ranks = {}
@@ -179,9 +189,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
         all_ranks.append(temp_ranks)
         norm_fitness_improvs = {}
         norm_fitness_improvs1 = {}
-
     sorted_ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
-
     if first_run and debug:
         for i in range(len(occurences)):
             if occurences[i] == 0 and len(to_remove) < MAX_TO_REMOVE:
@@ -192,9 +200,17 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     
     processed = flatten_improvs_dict(all_fitness_improvs)
     processed1 = flatten_improvs_dict(all_fitness_improvs1)
-    
     total_improvement = sum(map(abs,fitness_improvements.values()))
     total_improvement1 = sum(map(abs,fitness_improvements1.values()))
+    total_portions = {part.index: 0 for part in pso.particles}
+    for p in pso.particles:
+        index = p.index
+        for part in pso.particles:
+            second_index = part.index
+            if second_index != index:
+                total_portions[second_index] = total_portions[second_index] + particle_portions_sum[index][second_index]
+
+
 
     for key in fitness_improvements.keys():
         norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
@@ -203,8 +219,12 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     sorted_norm_improvs = dict(sorted(norm_fitness_improvs.items(), key=lambda item: item[1]))
     sorted_norm_improvs1 = dict(sorted(norm_fitness_improvs1.items(), key=lambda item: item[1]))
     
-    if debug:
+    if debug and not using_ring:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
+        print(particle_portions_sum[0])
+        print(particle_portions_sum[8])
+        print("--------------------------------")
+        print(total_portions)
         #print(occurences1)
         #print("-------------------------------")
         #print(sorted_norm_improvs)
@@ -212,10 +232,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
         #print("========= with decreasing =========")
         #print(sorted_norm_improvs1)
         #print(sorted_ranks)
-        highest_occur = max(occurences, key=occurences.get)
-        best_part = pso.particles[pso.global_best_index].history
-        best_improv = list(sorted_norm_improvs)[-1]
-        best_improv1 = list(sorted_norm_improvs1)[-1]
         #print(pso.particles[highest_occur].history[0].pos)
         entries = []
         for i in pso.history:
@@ -227,6 +243,10 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
         #print(df)
         #print("overall steps = ", pso.overall_steps)
         #print("-------------------------------------------------------------------------")
+    highest_occur = max(occurences, key=occurences.get)
+    best_part = pso.particles[pso.global_best_index].history
+    best_improv = list(sorted_norm_improvs)[-1]
+    best_improv1 = list(sorted_norm_improvs1)[-1]
     return to_remove, pso, processed, all_ranks, best_improv, best_improv1, processed1, sorted_norm_improvs, sorted_norm_improvs1, positions_start
 
 if __name__ == '__main__':
@@ -284,7 +304,7 @@ if __name__ == '__main__':
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.savefig(f"fitness_box.png", dpi=300, bbox_inches='tight')
     plt.show()'''
-    while runs < 0:
+    while runs < 1:
         values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
@@ -400,7 +420,7 @@ if __name__ == '__main__':
                 f.write(f"fitness gbest: {pso.global_best}\n")
                 f.write(f"fitness lbest: {pso_ring.global_best}")
 
-            Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
+            '''Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             
             Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
@@ -413,7 +433,7 @@ if __name__ == '__main__':
             plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
 
             Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/shared.png", dpi=250)
+            plt.savefig(f"{folder}/shared.png", dpi=250)'''
             plt.close('all')
         runs += 1
 
@@ -446,11 +466,11 @@ if __name__ == '__main__':
         if dec_improvs_lbest[i] == median_for_lbest_dec:
             index_median_lbest_dec = i+1
 
-    with open("evaluation/results.txt", "w") as f:
-        f.write(f"median gbest acc: {index_median_gbest_acc}\n")
-        f.write(f"median gbest dec: {index_median_gbest_dec}\n")
-        f.write(f"median lbest acc: {index_median_lbest_acc}\n")
-        f.write(f"median lbest dec: {index_median_lbest_dec}\n")
+    #with open("evaluation/results.txt", "w") as f:
+    #    f.write(f"median gbest acc: {index_median_gbest_acc}\n")
+    #    f.write(f"median gbest dec: {index_median_gbest_dec}\n")
+    #    f.write(f"median lbest acc: {index_median_lbest_acc}\n")
+    #    f.write(f"median lbest dec: {index_median_lbest_dec}\n")
         #plt.show()
     if graphical:
         #plt.ion()

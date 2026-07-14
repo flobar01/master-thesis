@@ -49,7 +49,8 @@ class Evaluation:
         # Plot
         sns.barplot(sorted_norm_improvs,      ax=axes_left, palette=pal,x=y, y=x, hue=y, legend=False)
         sns.barplot(sorted_norm_improvs_ring, ax=axes_right, palette=pal1, x=y1, y=x1, hue=y1, legend=False)
-
+        axes_left.set_ylim(0,0.21)
+        axes_right.set_ylim(0,0.21)
         #sns.barplot(sorted_norm_improvs1,      ax=axes_right[0], palette=pal1, x=y1,y=x1, hue=y1, legend=False)
         #sns.barplot(sorted_norm_improvs1_ring, ax=axes_right[1], palette=pal1_ring, x=y1_ring, y=x1_ring, hue=y1_ring, legend=False)
 
