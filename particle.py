@@ -5,7 +5,7 @@ import math
 
 
 class HistoryEntry:
-    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, fitness_improv=0):
+    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, personal_best, fitness_improv=0):
         self.gen = gen
         self.pos = pos
         self.inertia = inertia
@@ -18,6 +18,7 @@ class HistoryEntry:
         self.phi1 = phi1
         self.phi2 = phi2
         self.fitness = fitness
+        self.personal_best = personal_best
         self.fitness_improvement = fitness_improv
 
 class Particle:
@@ -31,7 +32,7 @@ class Particle:
         self.best_pos       = np.array([])
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness)
+        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best)
         self.history = np.append(self.history, entry)
         self.stationary = stationary
     
@@ -46,14 +47,16 @@ class Particle:
             phi2.fill(1)
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.pso.global_best_pos - self.pos) * phi2 
+            if self.pso.generation == 0:
+                print(self.pso.global_best_index)
             new_vel = inertia + cognitive + social
-            new_vel = self.check_vel(new_vel)
+            #new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
-            self.clamp()
+            #self.clamp()
             self.check_fitness()
-            last_fitness = self.history[-1].fitness
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, last_fitness - self.fitness)
+            last_fitness = self.history[self.pso.generation-1].fitness
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness)
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 

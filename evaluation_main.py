@@ -5,7 +5,7 @@ import seaborn as sns
 
 if __name__ == "__main__":
     sns.set_theme(style="darkgrid")
-    with open('evaluation/run26/data.pkl', 'rb') as run_data:
+    with open('evaluation/run27/data.pkl', 'rb') as run_data:
         data = pickle.load(run_data)
 
         pso_global_best = data["pso_global_best"]
@@ -21,8 +21,8 @@ if __name__ == "__main__":
         sorted_norm_improvs = data["sorted_norm_improvs"]
         sorted_norm_improvs_ring = data["sorted_norm_improvs_ring"]
         
-        #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso_global_best, pso_ring_global_best)
-        #plt.savefig("improvs.png", dpi=300)
+        Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso_global_best, pso_ring_global_best)
+        plt.savefig("improvs27.png", dpi=300)
 
         data_ranks = data["data_ranks"]
         data_ranks_ring = data["data_ranks_ring"]
@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
 
         Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso_global_best, pso_ring_global_best)
-        plt.savefig("normed_improvs26.png", dpi=250, bbox_inches='tight')
+        plt.savefig("normed_improvs27.png", dpi=100, bbox_inches='tight')
 
         #Evaluation.evaluate_shared(shared_best, sorted_norm_improvs_ring, pso_ring_global_best)
         #plt.savefig("shared.png", dpi=250)
