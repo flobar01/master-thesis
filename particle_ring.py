@@ -5,7 +5,7 @@ import math
 
 
 class HistoryEntry:
-    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, personal_best, fitness_improv=0):
+    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, personal_best, fitness_improv=0, portion={}):
         self.gen = gen
         self.pos = pos
         self.inertia = inertia
@@ -20,6 +20,7 @@ class HistoryEntry:
         self.fitness = fitness
         self.fitness_improvement = fitness_improv
         self.personal_best = personal_best
+        self.portion = {}
 
 class Particle:
     def __init__(self, pos, vel, pso, index, stationary = False):
@@ -36,9 +37,15 @@ class Particle:
         self.global_best_pos_temp = pos
         self.global_best_index_temp = index
         self.global_best_fitness_temp = self.fitness_update()
+        self.portion        = {index: 0 for index in range(params.popsize)}
+        self.portion[self.index] = 1
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best)
+        self.personal_best_portion = self.portion.copy()
+        self.lbest_portion = self.portion.copy()
+        self.lbest_portion_temp = self.portion.copy()
+        self.vel_portion    = {index: 0 for index in range(params.popsize)}
+        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best, portion=self.portion.copy())
         self.history = np.append(self.history, entry)
         self.stationary = stationary
         self.shared_best = 0
@@ -58,11 +65,19 @@ class Particle:
             new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
+            new_vel_portion = {}
+            for key in self.portion.keys():
+                new_vel_portion[key] = (params.w * self.vel_portion[key]
+                + params.c1 * (self.personal_best_portion[key] - self.portion[key])
+                + params.c2 * (self.lbest_portion[key] - self.portion[key]))
+            for key in self.portion.keys():
+                self.portion[key] = self.portion[key] + new_vel_portion[key]
+            self.vel_portion = new_vel_portion
             self.clamp()
             #print(f"{self.global_best_pos} {self.global_best_index} {self.index}")
             self.check_fitness()
             last_fitness = self.history[-1].fitness
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness)
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness, portion=self.portion.copy())
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 
@@ -107,6 +122,7 @@ class Particle:
             self.personal_best = self.pos
             self.best_fitness = new_fitness
             self.pso.local_change = True
+            self.personal_best_portion = self.portion.copy()
             if new_fitness < self.pso.global_best:
                 global_change = True
                 self.pso.global_change = True
@@ -114,5 +130,6 @@ class Particle:
             self.global_best_fitness = new_fitness
             self.global_best_index = self.index
             self.global_best_pos = self.pos
+            self.lbest_portion = self.portion.copy()
     
         self.fitness = new_fitness

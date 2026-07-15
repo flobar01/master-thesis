@@ -192,9 +192,8 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     sorted_norm_improvs = dict(sorted(norm_fitness_improvs.items(), key=lambda item: item[1]))
     sorted_norm_improvs1 = dict(sorted(norm_fitness_improvs1.items(), key=lambda item: item[1]))
     
-    if debug and not using_ring:
+    if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
-        print("--------------------------------")
         #print(total_portions)
         #print(occurences1)
         #print("-------------------------------")
@@ -306,6 +305,11 @@ if __name__ == '__main__':
                 ranks_array[key].append(current_ranks[key])
             global_rank_history.append(current_ranks[pso.global_best_index])
         
+        total_portions = {part.index: 0 for part in pso.particles}
+        for p in pso.particles:
+            portion = p.portion
+            for key in portion.keys():
+                total_portions[key] += portion[key]
         
         portions = {}
         for p in pso.particles:
@@ -317,7 +321,6 @@ if __name__ == '__main__':
             portions[str(p.index)] = norm_portions
         #portions = {f"{part.index}":part.portion for part in pso.particles}
         portions_data = pd.DataFrame(data=portions)
-        
         
         
         to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=start_positions)
@@ -344,12 +347,24 @@ if __name__ == '__main__':
                 improvs_array_ring1[key].append(current_improvs_ring1[key])
                 ranks_array_ring[key].append(current_ranks_ring[key])
             global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
-        total_portions = {part.index: 0 for part in pso.particles}
-        for p in pso.particles:
+        
+        total_portions_ring = {part.index: 0 for part in pso_ring.particles}
+        for p in pso_ring.particles:
             portion = p.portion
             for key in portion.keys():
-                total_portions[key] += portion[key]
+                total_portions_ring[key] += portion[key]
         
+        portions_ring = {}
+        for p in pso_ring.particles:
+            particle_portion = p.portion
+            total_portion_amount = sum(map(abs,particle_portion.values()))
+            norm_portions = {}
+            for key in particle_portion.keys():
+                norm_portions[key] = abs(particle_portion[key])/total_portion_amount
+            portions_ring[str(p.index)] = norm_portions
+        #portions = {f"{part.index}":part.portion for part in pso.particles}
+        portions_data_ring = pd.DataFrame(data=portions_ring)
+
         worst_starting = 0
         worst_starting_lbest = 0
 
@@ -414,6 +429,12 @@ if __name__ == '__main__':
 
             Evaluation.evaluate_portions_stacked(portions_data)
             plt.savefig(f"{folder}/stacked_portions.png", dpi=250)
+            
+            Evaluation.evaluate_portions(total_portions_ring)
+            plt.savefig(f"{folder}/portions_ring.png", dpi=250)
+
+            Evaluation.evaluate_portions_stacked(portions_data_ring)
+            plt.savefig(f"{folder}/stacked_portions_ring.png", dpi=250)
             '''Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             
