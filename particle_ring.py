@@ -20,7 +20,7 @@ class HistoryEntry:
         self.fitness = fitness
         self.fitness_improvement = fitness_improv
         self.personal_best = personal_best
-        self.portion = {}
+        self.portion = portion
 
 class Particle:
     def __init__(self, pos, vel, pso, index, stationary = False):
@@ -62,18 +62,18 @@ class Particle:
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
-            new_vel = self.check_vel(new_vel)
+            #new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
             new_vel_portion = {}
             for key in self.portion.keys():
                 new_vel_portion[key] = (params.w * self.vel_portion[key]
-                + params.c1 * (self.personal_best_portion[key] - self.portion[key])
-                + params.c2 * (self.lbest_portion[key] - self.portion[key]))
+                                       + params.c1 * (self.personal_best_portion[key] - self.portion[key])
+                                       + params.c2 * (self.lbest_portion[key] - self.portion[key]))
             for key in self.portion.keys():
                 self.portion[key] = self.portion[key] + new_vel_portion[key]
             self.vel_portion = new_vel_portion
-            self.clamp()
+            #self.clamp()
             #print(f"{self.global_best_pos} {self.global_best_index} {self.index}")
             self.check_fitness()
             last_fitness = self.history[-1].fitness

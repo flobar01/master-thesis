@@ -196,7 +196,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         #print(total_portions)
         #print(occurences1)
-        #print("-------------------------------")
+        print("-------------------------------")
         #print(sorted_norm_improvs)
         #print("---------------")
         #print("========= with decreasing =========")
@@ -234,6 +234,9 @@ if __name__ == '__main__':
     acc_improvs_lbest = []
     dec_improvs_gbest = []
     dec_improvs_lbest = []
+
+    best_fitness_gbest = []
+    best_fitness_lbest = []
     fitness_data = {
         "value_set":     [],
         "GBest": [],
@@ -274,7 +277,7 @@ if __name__ == '__main__':
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.savefig(f"fitness_box.png", dpi=300, bbox_inches='tight')
     plt.show()'''
-    while runs < 31:
+    while runs < 1:
         values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
@@ -293,7 +296,7 @@ if __name__ == '__main__':
             improvs_array.update({key: []})
             improvs_array1.update({key: []})
             ranks_array.update({key: []})
-        #run_pso(to_remove, False)
+        
         for i in range(params.iterations):
             current_improvs = all_fitness_improvs[i]
             current_improvs1 = all_fitness_improvs1[i]
@@ -306,10 +309,25 @@ if __name__ == '__main__':
             global_rank_history.append(current_ranks[pso.global_best_index])
         
         total_portions = {part.index: 0 for part in pso.particles}
+        highest_portion_index = 0
+        highest_portion = 0
+        
+        second_highest_portion_index = 0
+        second_highest_portion = 0
+
         for p in pso.particles:
             portion = p.portion
             for key in portion.keys():
                 total_portions[key] += portion[key]
+        
+        for key in total_portions.keys():
+            if total_portions[key] > highest_portion:
+                highest_portion_index = key
+                highest_portion = total_portions[key]
+            if total_portions[key] > second_highest_portion and key != highest_portion_index:
+                second_highest_portion = total_portions[key]
+                second_highest_portion_index = key
+        
         
         portions = {}
         for p in pso.particles:
@@ -337,6 +355,23 @@ if __name__ == '__main__':
             improvs_array_ring1.update({key: []})
             ranks_array_ring.update({key: []})
         #run_pso(to_remove, False)
+
+        all_portion_changes = []
+
+        for i in range(params.iterations):
+            current_portion_changes = {p.index: 0 for p in pso.particles}
+            for p in pso.particles:
+                current_portion = p.history[i].portion
+                if i > 0:
+                    last_portion = p.history[i-1].portion
+                    for key in current_portion.keys():
+                        current_portion_changes[key] = current_portion_changes[key] + (current_portion[key] - last_portion[key])
+                else:
+                    for key in current_portion.keys():
+                        current_portion_changes[key] = current_portion_changes[key] + current_portion[key]
+                        
+            all_portion_changes.append(current_portion_changes)
+
         for i in range(params.iterations):
             current_improvs_ring = all_fitness_improvs_ring[i]
             current_improvs_ring1 = all_fitness_improvs1_ring[i]
@@ -347,12 +382,43 @@ if __name__ == '__main__':
                 improvs_array_ring1[key].append(current_improvs_ring1[key])
                 ranks_array_ring[key].append(current_ranks_ring[key])
             global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
+
+        all_portion_changes_ring = []
+        for i in range(params.iterations):
+            current_portion_changes = {p.index: 0 for p in pso_ring.particles}
+            for p in pso_ring.particles:
+                current_portion = p.history[i].portion.copy()
+                if i > 0:
+                    last_portion = p.history[i-1].portion.copy()
+                    for key in current_portion.keys():
+                        current_portion_changes[key] = current_portion_changes[key] + (current_portion[key] - last_portion[key])
+                else:
+                    for key in current_portion.keys():
+                        current_portion_changes[key] = current_portion_changes[key] + current_portion[key]
+                        
+            all_portion_changes_ring.append(current_portion_changes)
+
         
         total_portions_ring = {part.index: 0 for part in pso_ring.particles}
+        highest_portion_ring = 0
+        highest_portion_index_ring = 0
+
+        second_highest_portion_ring = 0
+        second_highest_portion_index_ring = 0
+
         for p in pso_ring.particles:
             portion = p.portion
             for key in portion.keys():
                 total_portions_ring[key] += portion[key]
+
+
+        for key in total_portions_ring.keys():
+            if total_portions_ring[key] > highest_portion_ring:
+                highest_portion_index_ring = key
+                highest_portion_ring = total_portions_ring[key]
+            if total_portions[key] > second_highest_portion_ring and key != highest_portion_index_ring:
+                second_highest_portion_ring = total_portions[key]
+                second_highest_portion_index_ring = key
         
         portions_ring = {}
         for p in pso_ring.particles:
@@ -379,7 +445,10 @@ if __name__ == '__main__':
             if ranks[0] == 20:
                 worst_starting_lbest = idx
                 break
-        
+
+        best_fitness_gbest.append(pso.global_best)
+        best_fitness_lbest.append(pso_ring.global_best)
+
         acc_improvs_gbest.append(sorted_norm_improvs[worst_starting])
         dec_improvs_gbest.append(sorted_norm_improvs1[worst_starting])
         
@@ -395,6 +464,8 @@ if __name__ == '__main__':
             data_improvs1 = pd.DataFrame.from_dict(improvs_array1)
             data_improvs_ring = pd.DataFrame.from_dict(improvs_array_ring)
             data_improvs1_ring = pd.DataFrame.from_dict(improvs_array_ring1)
+            data_portions = pd.DataFrame.from_dict(all_portion_changes)
+            data_portions_ring = pd.DataFrame.from_dict(all_portion_changes_ring)
             shared_data = {}
             for i in pso_ring.particles:
                 shared_data[i.index] = i.shared_best
@@ -416,6 +487,9 @@ if __name__ == '__main__':
 
             if not os.path.exists(folder):
                 os.mkdir(f"evaluation/run{runs+1}")
+
+            if not os.path.exists(f"{folder}/portions"):
+                os.mkdir(f"{folder}/portions")
             
             with open(f"{folder}/data.pkl", "wb") as data_saving:
                 pickle.dump(saving, data_saving, pickle.HIGHEST_PROTOCOL)
@@ -424,18 +498,26 @@ if __name__ == '__main__':
                 f.write(f"fitness gbest: {pso.global_best}\n")
                 f.write(f"fitness lbest: {pso_ring.global_best}")
             
+            
+            Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
+            plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
+            
+            Evaluation.evaluate_portions_ot(data_portions_ring, highest_portion_index_ring, second_highest_portion_index_ring, pso_ring.global_best_index, False)
+            plt.savefig(f"{folder}/portions/portions_ot_ring.png", dpi=250, bbox_inches='tight')
+            
             Evaluation.evaluate_portions(total_portions)
-            plt.savefig(f"{folder}/portions.png", dpi=250)
+            plt.savefig(f"{folder}/portions/portions.png", dpi=250)
 
             Evaluation.evaluate_portions_stacked(portions_data)
-            plt.savefig(f"{folder}/stacked_portions.png", dpi=250)
+            plt.savefig(f"{folder}/portions/stacked_portions.png", dpi=250)
             
             Evaluation.evaluate_portions(total_portions_ring)
-            plt.savefig(f"{folder}/portions_ring.png", dpi=250)
+            plt.savefig(f"{folder}/portions/portions_ring.png", dpi=250)
 
             Evaluation.evaluate_portions_stacked(portions_data_ring)
-            plt.savefig(f"{folder}/stacked_portions_ring.png", dpi=250)
-            '''Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
+            plt.savefig(f"{folder}/portions/stacked_portions_ring.png", dpi=250) 
+
+            Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             
             Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
@@ -448,7 +530,8 @@ if __name__ == '__main__':
             plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
 
             Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/shared.png", dpi=250)'''
+            plt.savefig(f"{folder}/shared.png", dpi=250)
+
             plt.close('all')
         runs += 1
 
@@ -456,6 +539,9 @@ if __name__ == '__main__':
     median_for_lbest_acc = np.median(np.array(acc_improvs_lbest))
     median_for_gbest_dec = np.median(np.array(dec_improvs_gbest))
     median_for_lbest_dec = np.median(np.array(dec_improvs_lbest))
+
+    median_for_gbest_fitness = np.median(np.array(best_fitness_gbest))
+    median_for_lbest_fitness = np.median(np.array(best_fitness_lbest))
     
     index_median_gbest_acc = 0
 
@@ -480,8 +566,22 @@ if __name__ == '__main__':
     for i in range(len(dec_improvs_lbest)):
         if dec_improvs_lbest[i] == median_for_lbest_dec:
             index_median_lbest_dec = i+1
+    
+    index_median_gbest_fitness = 0
 
-    #with open("evaluation/results.txt", "w") as f:
+    for i in range(len(best_fitness_gbest)):
+        if best_fitness_gbest[i] == median_for_gbest_fitness:
+            index_median_gbest_fitness = i+1
+    
+    index_median_lbest_fitness = 0
+
+    for i in range(len(best_fitness_lbest)):
+        if best_fitness_lbest[i] == median_for_lbest_fitness:
+            index_median_lbest_fitness = i+1
+
+    with open("evaluation/results.txt", "w") as f:
+        f.write(f"median gbest fitness: {index_median_gbest_fitness}\n")
+        f.write(f"median lbest fitness: {index_median_lbest_fitness}")
     #    f.write(f"median gbest acc: {index_median_gbest_acc}\n")
     #    f.write(f"median gbest dec: {index_median_gbest_dec}\n")
     #    f.write(f"median lbest acc: {index_median_lbest_acc}\n")
