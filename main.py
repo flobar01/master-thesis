@@ -275,12 +275,12 @@ if __name__ == '__main__':
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.savefig(f"fitness_box.png", dpi=300, bbox_inches='tight')
     plt.show()'''
-    while runs < 1:
+    while runs < 31:
         values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
-        start_positions = np.load(f"saves copy/start_pos_1.npy")
+        start_positions = np.load(f"saves copy/start_pos_{runs}.npy")
         if start_positions is None:
             break
         to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=start_positions)
@@ -305,8 +305,21 @@ if __name__ == '__main__':
                 improvs_array1[key].append(current_improvs1[key])
                 ranks_array[key].append(current_ranks[key])
             global_rank_history.append(current_ranks[pso.global_best_index])
-
-            
+        
+        
+        portions = {}
+        for p in pso.particles:
+            particle_portion = p.portion
+            total_portion_amount = sum(map(abs,particle_portion.values()))
+            norm_portions = {}
+            for key in particle_portion.keys():
+                norm_portions[key] = abs(particle_portion[key])/total_portion_amount
+            portions[str(p.index)] = norm_portions
+        #portions = {f"{part.index}":part.portion for part in pso.particles}
+        portions_data = pd.DataFrame(data=portions)
+        
+        
+        
         to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=start_positions)
         if pso_ring.global_best > 2:
             continue
@@ -397,7 +410,10 @@ if __name__ == '__main__':
                 f.write(f"fitness lbest: {pso_ring.global_best}")
             
             Evaluation.evaluate_portions(total_portions)
-            plt.savefig("portions.png", dpi=250)
+            plt.savefig(f"{folder}/portions.png", dpi=250)
+
+            Evaluation.evaluate_portions_stacked(portions_data)
+            plt.savefig(f"{folder}/stacked_portions.png", dpi=250)
             '''Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             

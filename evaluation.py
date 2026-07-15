@@ -4,6 +4,7 @@ import matplotlib.colors as mcolors
 import matplotlib.animation as animation
 import pandas as pd
 from parameters import params
+import numpy as np
 
 class Evaluation:
 
@@ -166,3 +167,26 @@ class Evaluation:
         plt.clf
         plt.figure()
         ax = sns.barplot(portions)
+        ax.set_yscale('log')
+
+    def evaluate_portions_stacked(norm_portions):
+        bottom = np.zeros(len(norm_portions))
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        colors = sns.color_palette("tab20", norm_portions.shape[1])
+
+        for j, row in enumerate(norm_portions.index):
+            values = norm_portions.loc[row].to_numpy()
+            ax.bar(
+                norm_portions.columns,
+                values,
+                bottom=bottom,
+                label=row,
+                color=colors[j]
+            )
+            bottom += values
+
+        ax.legend(title="Particle", bbox_to_anchor=(1.05, 1), loc="upper left")
+
+        plt.tight_layout()
