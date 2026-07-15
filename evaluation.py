@@ -4,6 +4,7 @@ import matplotlib.colors as mcolors
 import matplotlib.animation as animation
 import pandas as pd
 from parameters import params
+import numpy as np
 
 class Evaluation:
 
@@ -161,3 +162,65 @@ class Evaluation:
         sort.reverse()
         ax = sns.barplot(shared_data, x=x, y=y, order=sort, palette=pal, hue=x, legend=False)
         ax.set_ylabel("Number of shares")
+
+    def evaluate_portions(portions):
+        plt.clf
+        plt.figure()
+        ax = sns.barplot(portions)
+        ax.set_yscale('log')
+
+    def evaluate_portions_stacked(norm_portions):
+        bottom = np.zeros(len(norm_portions))
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        colors = sns.color_palette("tab20", norm_portions.shape[1])
+
+        for j, row in enumerate(norm_portions.index):
+            values = norm_portions.loc[row].to_numpy()
+            ax.bar(
+                norm_portions.columns,
+                values,
+                bottom=bottom,
+                label=row,
+                color=colors[j]
+            )
+            bottom += values
+
+        ax.legend(title="Particle", bbox_to_anchor=(1.05, 1), loc="upper left")
+
+        plt.tight_layout()
+    
+    def evaluate_portions_ot(data_portion, highest_portion_index, second_highest_portion_index, pso_best_index, is_gbest):
+        plt.clf()
+        grey_color = "#00000010"
+        standard_pal = sns.color_palette()
+        pal = {index: standard_pal[0] if index == highest_portion_index else standard_pal[1] if index == pso_best_index else standard_pal[2] if index == second_highest_portion_index else grey_color for index in data_portion.columns}
+
+        fig, axes = plt.subplots(nrows = 1, figsize=(10,8))
+        #fig.set_size_inches(12,10)
+        ax = sns.lineplot(data_portion, palette=pal, dashes=False)
+        #sns.lineplot(data_ranks_ring, ax=axes[1], palette=pal_ring, dashes=False)
+        for i in range(1):
+            #ax = axes[i]
+            handles, labels = ax.get_legend_handles_labels()
+            to_remove = {}
+            if i == 0:
+                to_remove = {str(x) if x != highest_portion_index and x != pso_best_index and x != second_highest_portion_index else "" for x in data_portion.columns}
+
+            for line, label in zip(ax.lines, labels):
+                if label in to_remove:
+                    line.set_linewidth(1)
+            
+            if i == 0:
+                filtered = [(h, r'$\bar{I}_g') if l == str(highest_portion_index) else (h, r'$\bar{I}_{g2}') if l == str(second_highest_portion_index) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
+            handles, labels = zip(*filtered)
+            
+            ax.legend(handles, labels)
+            plt.tight_layout()
+            sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+
+            if is_gbest:
+                ax.set_title(f"GBest")
+            else:
+                ax.set_title("LBest")

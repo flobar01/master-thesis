@@ -5,7 +5,7 @@ import math
 
 
 class HistoryEntry:
-    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, personal_best, fitness_improv=0):
+    def __init__(self, index, gen, pos, inertia, cognitive, social, best_idx, is_best, best_pos, phi1, phi2, fitness, personal_best, fitness_improv=0, portion=None):
         self.gen = gen
         self.pos = pos
         self.inertia = inertia
@@ -20,6 +20,7 @@ class HistoryEntry:
         self.fitness = fitness
         self.personal_best = personal_best
         self.fitness_improvement = fitness_improv
+        self.portion = portion if portion is not None else {}
 
 class Particle:
     def __init__(self, pos, vel, pso, index, stationary = False):
@@ -32,7 +33,11 @@ class Particle:
         self.best_pos       = np.array([])
         self.pso            = pso
         self.history        = np.array([[]], dtype=HistoryEntry)
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best)
+        self.portion        = {index: 0 for index in range(params.popsize)}
+        self.portion[self.index] = 1
+        self.personal_best_portion = self.portion.copy()
+        self.vel_portion    = {index: 0 for index in range(params.popsize)}
+        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best, portion=self.portion.copy())
         self.history = np.append(self.history, entry)
         self.stationary = stationary
     
@@ -47,16 +52,23 @@ class Particle:
             phi2.fill(1)
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.pso.global_best_pos - self.pos) * phi2 
-            if self.pso.generation == 0:
-                print(self.pso.global_best_index)
             new_vel = inertia + cognitive + social
-            #new_vel = self.check_vel(new_vel)
+            new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
+            new_vel_portion = {}
+            for key in self.portion.keys():
+                new_vel_portion[key] = (params.w * self.vel_portion[key]
+                                       + params.c1 * (self.personal_best_portion[key] - self.portion[key])
+                                       + params.c2 * (self.pso.global_best_portion[key] - self.portion[key]))
+            for key in self.portion.keys():
+                self.portion[key] = self.portion[key] + new_vel_portion[key]
+            self.vel_portion = new_vel_portion
             #self.clamp()
             self.check_fitness()
             last_fitness = self.history[self.pso.generation-1].fitness
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness)
+
+            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness, portion=self.portion.copy())
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 
@@ -101,6 +113,7 @@ class Particle:
             self.personal_best = self.pos
             self.best_fitness = new_fitness
             self.pso.local_change = True
+            self.personal_best_portion = self.portion.copy()
             if new_fitness < self.pso.global_best:
                 global_change = True
                 self.pso.global_change = True

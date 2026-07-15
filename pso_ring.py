@@ -38,16 +38,13 @@ class PSO_Ring:
 
     def getlbestFitness(self, id):
         distances = {}
-        for idx in range(len(self.particles)):
-            if id != idx:
-                distances.update({idx: self.distance(self.particles[id].pos, self.particles[idx].pos)})
-        distances = dict(sorted(distances.items(), key=lambda item: item[1]))
-        ids = list(distances.keys())
-        best_fitness = min(self.particles[id].global_best_fitness, min(self.particles[ids[0]].global_best_fitness, self.particles[ids[1]].global_best_fitness))
-        if best_fitness == self.particles[ids[0]].global_best_fitness:
-            return ids[0]
-        if best_fitness == self.particles[ids[1]].global_best_fitness:
-            return ids[1]
+        lneigh = id - 1
+        rneigh = (id + 1) % params.popsize
+        best_fitness = min(self.particles[id].global_best_fitness, min(self.particles[lneigh].global_best_fitness, self.particles[rneigh].global_best_fitness))
+        if best_fitness == self.particles[lneigh].global_best_fitness:
+            return lneigh
+        if best_fitness == self.particles[rneigh].global_best_fitness:
+            return rneigh
         return id
         
 
@@ -112,6 +109,7 @@ class PSO_Ring:
                     p.global_best_fitness_temp = best_neighbor.global_best_fitness
                     p.global_best_index_temp = best_neighbor.global_best_index
                     p.global_best_pos_temp = best_neighbor.global_best_pos
+                    p.lbest_portion_temp = best_neighbor.portion.copy()
             
             if p.fitness < self.global_best:
                 self.global_best_ratio = self.global_best / p.fitness
@@ -125,6 +123,7 @@ class PSO_Ring:
                 p.global_best_fitness = p.global_best_fitness_temp
                 p.global_best_index = p.global_best_index_temp
                 p.global_best_pos = p.global_best_pos_temp
+                p.lbest_portion = p.lbest_portion_temp.copy()
                 p.global_best_fitness_temp = None
 
 
