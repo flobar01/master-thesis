@@ -31,6 +31,8 @@ class PSO:
         self.global_change = False
         self.global_best_ratio = 0
         self.global_fitness = 0
+        self.global_best_portion = {}
+        self.global_best_portion_temp = {}
         self.local_change = False
         self.overall_steps = 0
         self.history = np.array([], dtype=FitnessHistoryEntry)
@@ -70,6 +72,7 @@ class PSO:
                     self.global_best = p.fitness
                     self.global_best_temp_pos = p.pos
                     self.global_best_temp_index = idx
+                    self.global_best_portion_temp = p.portion.copy()
                     self.global_change = True
             else:
                 pos = np.array([10000, 10000])
@@ -79,6 +82,7 @@ class PSO:
             idx += 1
         self.global_best_pos = self.global_best_temp_pos
         self.global_best_index = self.global_best_temp_index
+        self.global_best_portion = self.global_best_portion_temp
         self.first_global_overall_fitness = self.getCurrentMeanFitness()
         historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, global_fitness=self.global_best)
         self.history = np.append(self.history, historyEntry)
@@ -94,8 +98,10 @@ class PSO:
                 self.global_best = p.fitness
                 self.global_best_temp_pos = p.pos
                 self.global_best_temp_index = idx
+                self.global_best_portion_temp = p.portion.copy()
         self.global_best_pos = self.global_best_temp_pos
         self.global_best_index = self.global_best_temp_index
+        self.global_best_portion = self.global_best_portion_temp
         historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, self.global_fitness/self.getCurrentMeanFitness(), self.first_global_overall_fitness/self.getCurrentMeanFitness(), self.global_best)
         self.global_fitness = self.getCurrentMeanFitness()
         self.global_best_ratio = float(1.000000)

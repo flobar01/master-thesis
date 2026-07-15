@@ -83,9 +83,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     fitness_improvements = {part.index: 0 for part in pso.particles}
     fitness_improvements1 = {part.index: 0 for part in pso.particles}
 
-    particle_portions_history = []
-    particle_portions_sum = {part.index: {part.index: 0 for part in pso.particles} for part in pso.particles}
-
     norm_fitness_improvs = {}
     all_fitness_improvs = []
     all_fitness_improvs1 = []
@@ -121,8 +118,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     for i in range(params.iterations):
         fitness_particles = {}
 
-        current_portions = {part.index: {part.index: 0 for part in pso.particles} for part in pso.particles}
-
         current_improvs = {part.index: 0 for part in pso.particles}
         current_improvs1 = {part.index: 0 for part in pso.particles}
         for key in fitness_improvements1.keys():
@@ -138,8 +133,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
                 else:
                     occurences1.update({history.best_idx: 1})
 
-                #particle_portions_sum[part.index].update((x, y*params.w) for x, y in particle_portions_sum[part.index].items())
-
 
                 fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
                 fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2
@@ -150,18 +143,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
                 current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
                 current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
                 current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1
-                if i > 0:
-                    current_portions[part.index][part.index] =  current_portions[part.index][part.index] - (params.c1) - (params.c2) + (params.c1)
-                    current_portions[part.index][history.best_idx] = current_portions[part.index][history.best_idx] + (params.c2)
-                    
-                    current_portions[part.index][part.index] = current_portions[part.index][part.index] - (params.c1) - (params.c2) + (params.c1)
-                    current_portions[part.index][history.best_idx] = current_portions[part.index][history.best_idx] + (params.c2)
-                    if len(particle_portions_history) > 1:
-                        particle_portions_sum[part.index][part.index] = particle_portions_history[-1][part.index][part.index]*params.w + particle_portions_sum[part.index][part.index] + current_portions[part.index][part.index]
-                        particle_portions_sum[part.index][history.best_idx] = particle_portions_history[-1][part.index][history.best_idx]*params.w + particle_portions_sum[part.index][history.best_idx] + current_portions[part.index][history.best_idx]
-                    else:
-                        particle_portions_sum[part.index][part.index] = particle_portions_sum[part.index][part.index] + current_portions[part.index][part.index]
-                        particle_portions_sum[part.index][history.best_idx] = particle_portions_sum[part.index][history.best_idx] + current_portions[part.index][history.best_idx]
         
         if i > 0:
             total_improvement = sum(map(abs,current_improvs.values()))
@@ -172,7 +153,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
                     current_improvs[key] = current_improvs[key]
                 if total_improvement1 != 0:
                     current_improvs1[key] = current_improvs1[key]
-            particle_portions_history.append(current_portions)
         all_fitness_improvs.append(current_improvs)
         all_fitness_improvs1.append(current_improvs1)
         
@@ -202,13 +182,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     processed1 = flatten_improvs_dict(all_fitness_improvs1)
     total_improvement = sum(map(abs,fitness_improvements.values()))
     total_improvement1 = sum(map(abs,fitness_improvements1.values()))
-    total_portions = {part.index: 0 for part in pso.particles}
-    for p in pso.particles:
-        index = p.index
-        for part in pso.particles:
-            second_index = part.index
-            if second_index != index:
-                total_portions[second_index] = total_portions[second_index] + particle_portions_sum[index][second_index]
 
 
 
@@ -221,10 +194,8 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
     
     if debug and not using_ring:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
-        print(particle_portions_sum[0])
-        print(particle_portions_sum[8])
         print("--------------------------------")
-        print(total_portions)
+        #print(total_portions)
         #print(occurences1)
         #print("-------------------------------")
         #print(sorted_norm_improvs)
@@ -309,7 +280,7 @@ if __name__ == '__main__':
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
-        start_positions = np.load(f"saves copy/start_pos_{runs}.npy")
+        start_positions = np.load(f"saves copy/start_pos_1.npy")
         if start_positions is None:
             break
         to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=start_positions)
@@ -360,6 +331,11 @@ if __name__ == '__main__':
                 improvs_array_ring1[key].append(current_improvs_ring1[key])
                 ranks_array_ring[key].append(current_ranks_ring[key])
             global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
+        total_portions = {part.index: 0 for part in pso.particles}
+        for p in pso.particles:
+            portion = p.portion
+            for key in portion.keys():
+                total_portions[key] += portion[key]
         
         worst_starting = 0
         worst_starting_lbest = 0
@@ -419,7 +395,9 @@ if __name__ == '__main__':
             with open(f"{folder}/end_result.txt", "w") as f:
                 f.write(f"fitness gbest: {pso.global_best}\n")
                 f.write(f"fitness lbest: {pso_ring.global_best}")
-
+            
+            Evaluation.evaluate_portions(total_portions)
+            plt.savefig("portions.png", dpi=250)
             '''Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             

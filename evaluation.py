@@ -161,3 +161,8 @@ class Evaluation:
         sort.reverse()
         ax = sns.barplot(shared_data, x=x, y=y, order=sort, palette=pal, hue=x, legend=False)
         ax.set_ylabel("Number of shares")
+
+    def evaluate_portions(portions):
+        plt.clf
+        plt.figure()
+        ax = sns.barplot(portions)
