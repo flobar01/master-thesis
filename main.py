@@ -68,7 +68,7 @@ def flatten_improvs_dict(all_fitness_improvs):
 
     return processed
 
-def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
+def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
     pso = None
     if using_ring:
         pso = PSO_Ring()
@@ -200,6 +200,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=None, run_number=0):
         #print(occurences1)
         print("-------------------------------")
         #print(sorted_norm_improvs)
+        print(pso.particles[pso.global_best_index].portion)
         #print("---------------")
         #print("========= with decreasing =========")
         #print(sorted_norm_improvs1)
@@ -279,15 +280,17 @@ if __name__ == '__main__':
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.savefig(f"fitness_box.png", dpi=300, bbox_inches='tight')
     plt.show()'''
-    while runs < 1:
+    while runs < 31:
         values = value_sets[2]
         params.w = values[0]
         params.c1 = values[1]
         params.c2 = values[2]
-        start_positions = np.load(f"saves copy/start_pos_{runs}.npy")
+        start_positions = np.load(f"saves/start_pos_{runs}.npy")
         if start_positions is None:
             break
         to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=start_positions)
+        if pso.global_best > 1:
+            continue
         improvs_array = {}
         improvs_array1 = {}
         ranks_array = {}
@@ -310,6 +313,95 @@ if __name__ == '__main__':
                 ranks_array[key].append(current_ranks[key])
             global_rank_history.append(current_ranks[pso.global_best_index])
         
+        
+        to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
+        if pso_ring.global_best > 2:
+            continue
+        improvs_array_ring = {}
+        improvs_array_ring1 = {}
+        ranks_array_ring = {}
+        global_rank_history_ring = []
+        global_fitness_history_ring = []
+        shared_best_ring = {}
+        for key in all_fitness_improvs_ring[1].keys():
+            improvs_array_ring.update({key: []})
+            improvs_array_ring1.update({key: []})
+            ranks_array_ring.update({key: []})
+        #run_pso(to_remove, False)
+
+
+        for i in range(params.iterations):
+            current_improvs_ring = all_fitness_improvs_ring[i]
+            current_improvs_ring1 = all_fitness_improvs1_ring[i]
+            current_ranks_ring = all_ranks_ring[i]
+            global_fitness_history_ring.append(pso_ring.history[i].global_fitness)
+            for key in current_improvs_ring.keys():
+                improvs_array_ring[key].append(current_improvs_ring[key])
+                improvs_array_ring1[key].append(current_improvs_ring1[key])
+                ranks_array_ring[key].append(current_ranks_ring[key])
+            global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
+
+
+        worst_starting = 0
+        worst_starting_lbest = 0
+
+        for idx in range(params.popsize):
+            ranks = ranks_array[idx]
+            if ranks[0] == 20:
+                worst_starting = idx
+                break
+
+        for idx in range(params.popsize):
+            ranks = ranks_array_ring[idx]
+            if ranks[0] == 20:
+                worst_starting_lbest = idx
+                break
+
+        best_fitness_gbest.append(pso.global_best)
+        best_fitness_lbest.append(pso_ring.global_best)
+
+        acc_improvs_gbest.append(sorted_norm_improvs[worst_starting])
+        dec_improvs_gbest.append(sorted_norm_improvs1[worst_starting])
+        
+        acc_improvs_lbest.append(sorted_norm_improvs_ring[worst_starting_lbest])
+        dec_improvs_lbest.append(sorted_norm_improvs1_ring[worst_starting_lbest])
+
+    ####################################################################################################    
+    ####################################################################################################    
+    ####################################################################################################    
+    ########################### _____           _   _                 ##################################
+    ###########################|  __ \         | | (_)                ##################################
+    ###########################| |__) |__  _ __| |_ _  ___  _ __  ___ ##################################
+    ###########################|  ___/ _ \| '__| __| |/ _ \| '_ \/ __|##################################
+    ###########################| |  | (_) | |  | |_| | (_) | | | \__ \##################################
+    ###########################|_|   \___/|_|   \__|_|\___/|_| |_|___/##################################
+    ####################################################################################################                     
+    ####################################################################################################                     
+    ####################################################################################################                     
+                                        
+        portions = {}
+        for p in pso.particles:
+            norm_portions = {}
+            for p2 in pso.particles:
+                particle_portion = p2.portion
+                total_portion_amount = sum(map(abs,particle_portion.values()))
+                norm_portions[r"$x_{{{}}}(t={})$".format(p2.index, params.iterations)] = particle_portion[p.index]
+            portions[r"$x_{{{}}}(t=0)$".format(p.index)] = norm_portions
+        #portions = {f"{part.index}":part.portion for part in pso.particles}
+        portions_data = pd.DataFrame(data=portions)
+
+
+        portions_ring = {}
+        for p in pso_ring.particles:
+            norm_portions = {}
+            for p2 in pso_ring.particles:
+                particle_portion = p2.portion
+                total_portion_amount = sum(map(abs,particle_portion.values()))
+                norm_portions[r"$x_{{{}}}(t={})$".format(p2.index, params.iterations)] = particle_portion[p.index]
+            portions_ring[r"$x_{{{}}}(t=0)$".format(p.index)] = norm_portions
+
+        portions_data_ring = pd.DataFrame(data=portions_ring)
+
         total_portions = {part.index: 0 for part in pso.particles}
         highest_portion_index = 0
         highest_portion = 0
@@ -329,34 +421,6 @@ if __name__ == '__main__':
             if total_portions[key] > second_highest_portion and key != highest_portion_index:
                 second_highest_portion = total_portions[key]
                 second_highest_portion_index = key
-        
-        
-        portions = {}
-        for p in pso.particles:
-            particle_portion = p.portion
-            total_portion_amount = sum(map(abs,particle_portion.values()))
-            norm_portions = {}
-            for key in particle_portion.keys():
-                norm_portions[key] = abs(particle_portion[key])/total_portion_amount
-            portions[str(p.index)] = norm_portions
-        #portions = {f"{part.index}":part.portion for part in pso.particles}
-        portions_data = pd.DataFrame(data=portions)
-        
-        
-        to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=start_positions)
-        if pso_ring.global_best > 2:
-            continue
-        improvs_array_ring = {}
-        improvs_array_ring1 = {}
-        ranks_array_ring = {}
-        global_rank_history_ring = []
-        global_fitness_history_ring = []
-        shared_best_ring = {}
-        for key in all_fitness_improvs_ring[1].keys():
-            improvs_array_ring.update({key: []})
-            improvs_array_ring1.update({key: []})
-            ranks_array_ring.update({key: []})
-        #run_pso(to_remove, False)
 
         all_portion_changes = []
 
@@ -373,17 +437,6 @@ if __name__ == '__main__':
                         current_portion_changes[key] = current_portion_changes[key] + current_portion[key]
                         
             all_portion_changes.append(current_portion_changes)
-
-        for i in range(params.iterations):
-            current_improvs_ring = all_fitness_improvs_ring[i]
-            current_improvs_ring1 = all_fitness_improvs1_ring[i]
-            current_ranks_ring = all_ranks_ring[i]
-            global_fitness_history_ring.append(pso_ring.history[i].global_fitness)
-            for key in current_improvs_ring.keys():
-                improvs_array_ring[key].append(current_improvs_ring[key])
-                improvs_array_ring1[key].append(current_improvs_ring1[key])
-                ranks_array_ring[key].append(current_ranks_ring[key])
-            global_rank_history_ring.append(current_ranks_ring[pso_ring.global_best_index])
 
         all_portion_changes_ring = []
         for i in range(params.iterations):
@@ -422,41 +475,7 @@ if __name__ == '__main__':
                 second_highest_portion_ring = total_portions[key]
                 second_highest_portion_index_ring = key
         
-        portions_ring = {}
-        for p in pso_ring.particles:
-            particle_portion = p.portion
-            total_portion_amount = sum(map(abs,particle_portion.values()))
-            norm_portions = {}
-            for key in particle_portion.keys():
-                norm_portions[key] = abs(particle_portion[key])/total_portion_amount
-            portions_ring[str(p.index)] = norm_portions
-        #portions = {f"{part.index}":part.portion for part in pso.particles}
-        portions_data_ring = pd.DataFrame(data=portions_ring)
 
-        worst_starting = 0
-        worst_starting_lbest = 0
-
-        for idx in range(20):
-            ranks = ranks_array[idx]
-            if ranks[0] == 20:
-                worst_starting = idx
-                break
-
-        for idx in range(20):
-            ranks = ranks_array_ring[idx]
-            if ranks[0] == 20:
-                worst_starting_lbest = idx
-                break
-
-        best_fitness_gbest.append(pso.global_best)
-        best_fitness_lbest.append(pso_ring.global_best)
-
-        acc_improvs_gbest.append(sorted_norm_improvs[worst_starting])
-        dec_improvs_gbest.append(sorted_norm_improvs1[worst_starting])
-        
-        acc_improvs_lbest.append(sorted_norm_improvs_ring[worst_starting_lbest])
-        dec_improvs_lbest.append(sorted_norm_improvs1_ring[worst_starting_lbest])
-        
         for i in pso_ring.particles:
             shared_best_ring[i.index] = i.shared_best
         if not graphical:
@@ -476,7 +495,8 @@ if __name__ == '__main__':
                 "sorted_norm_improvs": sorted_norm_improvs, "sorted_norm_improvs_ring": sorted_norm_improvs_ring, "sorted_norm_improvs1": sorted_norm_improvs1, 
                 "sorted_norm_improvs1_ring": sorted_norm_improvs1_ring, "data_ranks": data_ranks, "data_ranks_ring": data_ranks_ring, "best_improvs": best_improvs, "best_improvs1": best_improvs1,
                 "best_improvs_ring": best_improvs_ring, "best_improvs1_ring": best_improvs1_ring, "data_improvs": data_improvs, "data_improvs1": data_improvs1, "data_improvs_ring": data_improvs_ring,
-                "data_improvs1_ring": data_improvs1_ring, "shared_best": shared_data}
+                "data_improvs1_ring": data_improvs1_ring, "shared_best": shared_data, "data_portions": data_portions, "highest_portion_index": highest_portion_index, "highest_postion_index_ring": highest_portion_index_ring,
+                "data_portions_ring": data_portions_ring, "second_highest_portion_index": second_highest_portion_index, "second_highest_portion_index_ring": second_highest_portion_index_ring, "portions_data": portions_data, "portions_data_ring": portions_data_ring}
 
             standard_pal = sns.color_palette()
             sns.set_theme(style="darkgrid")
@@ -497,9 +517,8 @@ if __name__ == '__main__':
                 pickle.dump(saving, data_saving, pickle.HIGHEST_PROTOCOL)
             
             with open(f"{folder}/end_result.txt", "w") as f:
-                f.write(f"fitness gbest: {pso.global_best}\n")
-                f.write(f"fitness lbest: {pso_ring.global_best}")
-            
+                f.write(f"gbest: {pso.global_best_index} with {pso.global_best}\n")
+                f.write(f"lbest: {pso_ring.global_best_index} with {pso_ring.global_best}")
             
             Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
             plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
@@ -515,6 +534,12 @@ if __name__ == '__main__':
             
             Evaluation.evaluate_portions(total_portions_ring)
             plt.savefig(f"{folder}/portions/portions_ring.png", dpi=250)
+
+            Evaluation.evaluate_portions_heatmap(portions_data)
+            plt.savefig(f"{folder}/portions/heatmap.png", dpi=250)
+            
+            Evaluation.evaluate_portions_heatmap(portions_data_ring)
+            plt.savefig(f"{folder}/portions/heatmap_ring.png", dpi=250)
 
             Evaluation.evaluate_portions_stacked(portions_data_ring)
             plt.savefig(f"{folder}/portions/stacked_portions_ring.png", dpi=250) 
@@ -609,7 +634,7 @@ if __name__ == '__main__':
             x_pos = []
             y_pos = []
             improvs = []
-            for part in pso.particles:
+            for part in pso_ring.particles:
                 current = part.history[i].pos
                 best_idx = part.history[i].best_idx
                 x_pos.append(current[0])
@@ -618,6 +643,8 @@ if __name__ == '__main__':
                 else:
                     y_pos.append(part.index)
                 current_improvs = all_fitness_improvs[i]
+                if part.index == 13:
+                    ax.text(current[0], current[1], str(part.index), fontsize=9)
                 """if len(current) > 1:
                     ax.text(current[0], current[1], str(part.index), fontsize=9)
                 else:
@@ -626,8 +653,8 @@ if __name__ == '__main__':
                     improvs.append(current_improvs[part.index])
                 else:
                     improvs.append(0)
-            ax.set_xlim(-10,10)
-            ax.set_ylim(-10,10)
+            ax.set_xlim(-30,30)
+            ax.set_ylim(-30,30)
             ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn", norm=norm)
             ax.set_title(f"Generation {i}")
             if len(current) > 1:

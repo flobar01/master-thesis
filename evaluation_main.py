@@ -5,7 +5,7 @@ import seaborn as sns
 
 if __name__ == "__main__":
     sns.set_theme(style="darkgrid")
-    with open('evaluation/run27/data.pkl', 'rb') as run_data:
+    with open('evaluation/run16/data.pkl', 'rb') as run_data:
         data = pickle.load(run_data)
 
         pso_global_best = data["pso_global_best"]
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         sorted_norm_improvs_ring = data["sorted_norm_improvs_ring"]
         
         Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso_global_best, pso_ring_global_best)
-        plt.savefig("improvs27.png", dpi=300)
+        #plt.savefig("improvs27.png", dpi=300)
 
         data_ranks = data["data_ranks"]
         data_ranks_ring = data["data_ranks_ring"]
@@ -41,8 +41,20 @@ if __name__ == "__main__":
         shared_best = data["shared_best"]
 
 
-        Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso_global_best, pso_ring_global_best)
-        plt.savefig("normed_improvs27.png", dpi=100, bbox_inches='tight')
+        #Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso_global_best, pso_ring_global_best)
+        #plt.savefig("normed_improvs27.png", dpi=100, bbox_inches='tight')
 
         #Evaluation.evaluate_shared(shared_best, sorted_norm_improvs_ring, pso_ring_global_best)
         #plt.savefig("shared.png", dpi=250)
+
+        data_portions = data["data_portions"]
+        highest_portion_index = data["highest_portion_index"]
+        second_highest_portion_index = data["second_highest_portion_index"]
+        print(pso_global_best)
+#        Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso_global_best, True)
+#        plt.savefig(f"portions_ot.png", dpi=250, bbox_inches='tight')
+
+        norm_portions = data["portions_data"]
+        norm_portions_ring = data["portions_data_ring"]
+        Evaluation.evaluate_portions_heatmap(norm_portions_ring)
+        plt.savefig(f"testing/heatmap.png", dpi=250, bbox_inches='tight')

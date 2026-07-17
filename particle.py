@@ -53,7 +53,7 @@ class Particle:
             cognitive = params.c1 * (self.personal_best - self.pos) * phi1 
             social = params.c2 * (self.pso.global_best_pos - self.pos) * phi2 
             new_vel = inertia + cognitive + social
-            new_vel = self.check_vel(new_vel)
+            #new_vel = self.check_vel(new_vel)
             self.pos = self.pos + new_vel
             self.vel = new_vel
             new_vel_portion = {}

@@ -164,11 +164,16 @@ class Evaluation:
         ax.set_ylabel("Number of shares")
 
     def evaluate_portions(portions):
-        plt.clf
+        plt.clf()
         plt.figure()
         ax = sns.barplot(portions)
         ax.set_yscale('log')
 
+    def evaluate_portions_heatmap(data_portion):
+        plt.clf()
+        plt.figure()
+        ax = sns.heatmap(data_portion, cmap="RdBu_r", annot=True, center=0, annot_kws={"fontsize":8})
+        
     def evaluate_portions_stacked(norm_portions):
         bottom = np.zeros(len(norm_portions))
 
@@ -213,7 +218,7 @@ class Evaluation:
                     line.set_linewidth(1)
             
             if i == 0:
-                filtered = [(h, r'$\bar{I}_g') if l == str(highest_portion_index) else (h, r'$\bar{I}_{g2}') if l == str(second_highest_portion_index) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
+                filtered = [(h, r'$\bar{I}_g$') if l == str(highest_portion_index) else (h, r'$\bar{I}_{g2}$') if l == str(second_highest_portion_index) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
             handles, labels = zip(*filtered)
             
             ax.legend(handles, labels)

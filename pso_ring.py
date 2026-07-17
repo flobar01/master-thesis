@@ -109,7 +109,7 @@ class PSO_Ring:
                     p.global_best_fitness_temp = best_neighbor.global_best_fitness
                     p.global_best_index_temp = best_neighbor.global_best_index
                     p.global_best_pos_temp = best_neighbor.global_best_pos
-                    p.lbest_portion_temp = best_neighbor.portion.copy()
+                    p.lbest_portion_temp = best_neighbor.lbest_portion.copy()
             
             if p.fitness < self.global_best:
                 self.global_best_ratio = self.global_best / p.fitness
