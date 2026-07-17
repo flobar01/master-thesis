@@ -2,6 +2,7 @@ import pickle
 from evaluation import Evaluation
 import matplotlib.pyplot as plt 
 import seaborn as sns
+from parameters import params
 
 if __name__ == "__main__":
     sns.set_theme(style="darkgrid")
@@ -50,11 +51,12 @@ if __name__ == "__main__":
         data_portions = data["data_portions"]
         highest_portion_index = data["highest_portion_index"]
         second_highest_portion_index = data["second_highest_portion_index"]
-        print(pso_global_best)
 #        Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso_global_best, True)
 #        plt.savefig(f"portions_ot.png", dpi=250, bbox_inches='tight')
-
         norm_portions = data["portions_data"]
         norm_portions_ring = data["portions_data_ring"]
         Evaluation.evaluate_portions_heatmap(norm_portions_ring)
+        plt.savefig(f"testing/heatmap_ring.png", dpi=250, bbox_inches='tight')
+        
+        Evaluation.evaluate_portions_heatmap(norm_portions)
         plt.savefig(f"testing/heatmap.png", dpi=250, bbox_inches='tight')

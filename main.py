@@ -196,11 +196,14 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
     
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
+        pos = np.array([0.0,0.0])
+        for key in pso.particles[pso.global_best_index].portion.keys():
+            pos += pso.particles[key].history[0].pos * pso.particles[pso.global_best_index].portion[key]
         #print(total_portions)
         #print(occurences1)
-        print("-------------------------------")
+        #print("-------------------------------")
         #print(sorted_norm_improvs)
-        print(pso.particles[pso.global_best_index].portion)
+        #print(pso.particles[pso.global_best_index].portion)
         #print("---------------")
         #print("========= with decreasing =========")
         #print(sorted_norm_improvs1)
@@ -228,6 +231,11 @@ if __name__ == '__main__':
     graphical = not True
     value_sets = [[0.5, 1.4, 1.4], [0.5, 1.9, 1.9], [0.7, 1.4, 1.4], [0.7, 1.9, 1.9]]
     test_starting_pos = []
+    portions_on_output_particle = []
+    portions_on_output_particle_ring = []
+    ranked_portions_on_output_particle = []
+    ranked_portions_on_output_particle_ring = []
+
     for i in range(31):
         run = []
         for j in range(params.popsize):
@@ -475,6 +483,40 @@ if __name__ == '__main__':
                 second_highest_portion_ring = total_portions[key]
                 second_highest_portion_index_ring = key
         
+        gbest_history = []
+        for i in range(params.iterations):
+            gbest_history.append(pso.particles[0].history[i].best_idx)
+        #print(gbest_history)
+        
+        starting_ranks = all_ranks[0]
+
+        on_output_particle = {f"Rank {i}": 0 for i in starting_ranks.values()}
+        for p in pso.particles:
+            rank = starting_ranks[p.index]
+            particle_portion = pso.particles[pso.global_best_index].portion
+            total_portion_amount = sum(map(abs,particle_portion.values()))
+            on_output_particle[f"Rank {rank}"] = abs(particle_portion[p.index]) / total_portion_amount
+        portions_on_output_particle.append(on_output_particle)
+        
+        sorted_portions_on_output = dict(sorted(on_output_particle.items(), key=lambda item: item[1]))
+        
+        ranked_portions_temp = {f"Rank {i}": 0 for i in starting_ranks.values()}
+        rank = 10
+        for key in sorted_portions_on_output:
+            ranked_portions_temp[key] = rank
+            rank -= 1
+        ranked_portions_on_output_particle.append(ranked_portions_temp)
+
+        starting_ranks = all_ranks_ring[0]
+        on_output_particle_ring = {f"Rank {i}": 0 for i in starting_ranks.values()}
+        for p in pso_ring.particles:
+            rank = starting_ranks[p.index]
+            particle_portion = pso_ring.particles[pso_ring.global_best_index].portion
+            total_portion_amount = sum(map(abs,particle_portion.values()))
+            on_output_particle_ring[f"Rank {rank}"] = abs(particle_portion[p.index]) / total_portion_amount
+        portions_on_output_particle_ring.append(on_output_particle_ring)
+        
+        
 
         for i in pso_ring.particles:
             shared_best_ring[i.index] = i.shared_best
@@ -518,9 +560,10 @@ if __name__ == '__main__':
             
             with open(f"{folder}/end_result.txt", "w") as f:
                 f.write(f"gbest: {pso.global_best_index} with {pso.global_best}\n")
-                f.write(f"lbest: {pso_ring.global_best_index} with {pso_ring.global_best}")
-            
-            Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
+                f.write(f"lbest: {pso_ring.global_best_index} with {pso_ring.global_best}\n")
+                f.write(f"{gbest_history}\n")
+
+            '''Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
             plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
             
             Evaluation.evaluate_portions_ot(data_portions_ring, highest_portion_index_ring, second_highest_portion_index_ring, pso_ring.global_best_index, False)
@@ -557,10 +600,23 @@ if __name__ == '__main__':
             plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
 
             Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/shared.png", dpi=250)
+            plt.savefig(f"{folder}/shared.png", dpi=250)'''
 
             plt.close('all')
         runs += 1
+        
+    portions_on_output_particle_data = pd.DataFrame(data=portions_on_output_particle)
+    portions_on_output_particle_ring_data = pd.DataFrame(data=portions_on_output_particle_ring)
+    ranked_portions_on_output_particle_data = pd.DataFrame(data=ranked_portions_on_output_particle)
+
+    Evaluation.evaluate_portions_on_output_particle(portions_on_output_particle_data)
+    plt.savefig(f"evaluation/portions_on_output.png", dpi=250, bbox_inches='tight')
+    
+    Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data)
+    plt.savefig(f"evaluation/ranked_portions_on_output.png", dpi=250, bbox_inches='tight')
+    
+    Evaluation.evaluate_portions_on_output_particle(portions_on_output_particle_ring_data)
+    plt.savefig(f"evaluation/portions_on_output_ring.png", dpi=250, bbox_inches='tight')
 
     median_for_gbest_acc = np.median(np.array(acc_improvs_gbest))
     median_for_lbest_acc = np.median(np.array(acc_improvs_lbest))

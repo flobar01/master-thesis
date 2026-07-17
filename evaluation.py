@@ -229,3 +229,7 @@ class Evaluation:
                 ax.set_title(f"GBest")
             else:
                 ax.set_title("LBest")
+
+    def evaluate_portions_on_output_particle(portions):
+        plt.clf()
+        ax = sns.boxplot(data=portions, color="gray")
