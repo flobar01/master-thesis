@@ -1,8 +1,8 @@
 class params:
-    w          = 0.5
-    c1         = 1.9
-    c2         = 1.9
-    popsize    = 10
-    bounds     = 30
+    w          = 0.7
+    c1         = 1.4
+    c2         = 1.4
+    popsize    = 3
+    bounds     = 10
     iterations = 25
     dimensions = 2

@@ -78,7 +78,7 @@ class Evaluation:
 
         fig, axes = plt.subplots(nrows = 1, figsize=(10,8))
         #fig.set_size_inches(12,10)
-        ax = sns.lineplot(data_ranks, palette=pal, dashes=False)
+        ax = sns.lineplot(data_ranks, palette=pal, dashes=False, legend=False)
         #sns.lineplot(data_ranks_ring, ax=axes[1], palette=pal_ring, dashes=False)
         for i in range(1):
             #ax = axes[i]
@@ -102,13 +102,8 @@ class Evaluation:
             ax.legend(handles, labels)
             plt.tight_layout()
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-
-            if i == 0:
-                ax.set_title(f"GBest")
-            else:
-                ax.set_title(f"LBest")
-            if i == 1:
-                ax.set_xlabel("Time Step")
+            ax.set_ylabel("Fitness Rank")
+            ax.set_xlabel("Time Step")
         
     def evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso_best_index, pso_ring_best_index):
         plt.clf()
@@ -172,7 +167,8 @@ class Evaluation:
     def evaluate_portions_heatmap(data_portion):
         plt.clf()
         plt.figure()
-        ax = sns.heatmap(data_portion, cmap="RdBu_r", annot=True, center=0, annot_kws={"fontsize":8})
+        ax = sns.heatmap(data_portion, cmap="seismic_r", annot=True, center=0, annot_kws={"fontsize":8})
+        ax.tick_params(labelsize=5)
         
     def evaluate_portions_stacked(norm_portions):
         bottom = np.zeros(len(norm_portions))
@@ -232,4 +228,7 @@ class Evaluation:
 
     def evaluate_portions_on_output_particle(portions):
         plt.clf()
+        medians = portions.quantile()
+        print(medians)
         ax = sns.boxplot(data=portions, color="gray")
+        ax.tick_params(labelsize=5)

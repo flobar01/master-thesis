@@ -32,6 +32,7 @@ class PSO_Ring:
         self.global_change = False
         self.global_best_ratio = 0
         self.global_fitness = 0
+        self.generation_best_found = 0
         self.local_change = False
         self.overall_steps = 0
         self.history = np.array([], dtype=FitnessHistoryEntry)
@@ -129,6 +130,7 @@ class PSO_Ring:
 
         self.global_best_pos = self.global_best_temp_pos
         self.global_best_index = self.global_best_temp_index
+        self.generation_best_found = self.generation
         historyEntry = FitnessHistoryEntry(self.global_change, self.local_change, self.getCurrentMeanFitness(), self.generation, self.global_best_ratio, self.global_fitness/self.getCurrentMeanFitness(), self.first_global_overall_fitness/self.getCurrentMeanFitness(), self.global_best)
         self.global_fitness = self.getCurrentMeanFitness()
         self.global_best_ratio = float(1.000000)

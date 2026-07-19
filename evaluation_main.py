@@ -6,7 +6,7 @@ from parameters import params
 
 if __name__ == "__main__":
     sns.set_theme(style="darkgrid")
-    with open('evaluation/run16/data.pkl', 'rb') as run_data:
+    with open('evaluation/run31/data.pkl', 'rb') as run_data:
         data = pickle.load(run_data)
 
         pso_global_best = data["pso_global_best"]
@@ -49,14 +49,24 @@ if __name__ == "__main__":
         #plt.savefig("shared.png", dpi=250)
 
         data_portions = data["data_portions"]
+        data_portions_ring = data["data_portions_ring"]
         highest_portion_index = data["highest_portion_index"]
         second_highest_portion_index = data["second_highest_portion_index"]
-#        Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso_global_best, True)
-#        plt.savefig(f"portions_ot.png", dpi=250, bbox_inches='tight')
+
+        #Evaluation.evaluate_portions_ot(data_portions, 8, 5, pso_global_best, True)
+        #plt.savefig(f"portions_ot_gbest.png", dpi=250, bbox_inches='tight')
+        
+        #Evaluation.evaluate_portions_ot(data_portions_ring, 5, 3, pso_ring_global_best, True)
+        #plt.savefig(f"portions_ot_lbest.png", dpi=250, bbox_inches='tight')
+
+        Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, 8, best_improvs_ring, 5, best_improvs1_ring, pso_global_best, pso_ring_global_best)
+        plt.savefig("testing/ranks.png", dpi=250, bbox_inches='tight')
+
         norm_portions = data["portions_data"]
         norm_portions_ring = data["portions_data_ring"]
-        Evaluation.evaluate_portions_heatmap(norm_portions_ring)
-        plt.savefig(f"testing/heatmap_ring.png", dpi=250, bbox_inches='tight')
+
+        #Evaluation.evaluate_portions_heatmap(norm_portions_ring)
+        #plt.savefig(f"testing/heatmap_ring.png", dpi=250, bbox_inches='tight')
         
-        Evaluation.evaluate_portions_heatmap(norm_portions)
-        plt.savefig(f"testing/heatmap.png", dpi=250, bbox_inches='tight')
+        #Evaluation.evaluate_portions_heatmap(norm_portions)
+        #plt.savefig(f"testing/heatmap.png", dpi=250, bbox_inches='tight')

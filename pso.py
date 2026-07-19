@@ -28,6 +28,7 @@ class PSO:
         self.global_best_temp_index = 0
         self.first_global_overall_fitness = 0
         self.generation = 0
+        self.generation_best_found = 0
         self.global_change = False
         self.global_best_ratio = 0
         self.global_fitness = 0
@@ -42,6 +43,7 @@ class PSO:
         idx = 0
         made_up = not True
         #poses = np.load("saves/start_pos.npy")
+        start_poses = np.array([[7,0], [8.5,1], [8.5,-1]])
         for i in range(params.popsize):
             if i not in to_remove:
                 if len(to_remove) == 0:
@@ -99,6 +101,7 @@ class PSO:
                 self.global_best_temp_pos = p.pos
                 self.global_best_temp_index = idx
                 self.global_best_portion_temp = p.portion.copy()
+                self.generation_best_found = self.generation
         self.global_best_pos = self.global_best_temp_pos
         self.global_best_index = self.global_best_temp_index
         self.global_best_portion = self.global_best_portion_temp
