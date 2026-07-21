@@ -43,7 +43,7 @@ class PSO:
         idx = 0
         made_up = not True
         #poses = np.load("saves/start_pos.npy")
-        start_poses = np.array([[7,0], [8.5,1], [8.5,-1]])
+        #start_poses = np.array([[7,0], [8.5,1], [8.5,-1]])
         for i in range(params.popsize):
             if i not in to_remove:
                 if len(to_remove) == 0:

@@ -99,8 +99,8 @@ class Particle:
 
 
     def fitness_update(self):
-        return self.circle_fitness()
         return self.rosenbrock_fitness()
+        return self.circle_fitness()
         return self.ackley_fitness()
         return self.pos[0]
 

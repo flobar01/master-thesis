@@ -214,21 +214,20 @@ class Evaluation:
                     line.set_linewidth(1)
             
             if i == 0:
-                filtered = [(h, r'$\bar{I}_g$') if l == str(highest_portion_index) else (h, r'$\bar{I}_{g2}$') if l == str(second_highest_portion_index) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
+                filtered = [(h, r'$\bar{I}_g$') if l == str(highest_portion_index) else (h, r'$\bar{I}_{g2}$') if l == str(second_highest_portion_index) else (h, r'$\vec{g}$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
             handles, labels = zip(*filtered)
             
             ax.legend(handles, labels)
             plt.tight_layout()
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+            ax.set_ylabel("Sum of coefficients")
+            ax.set_xlabel("Time Steps")
 
-            if is_gbest:
-                ax.set_title(f"GBest")
-            else:
-                ax.set_title("LBest")
 
     def evaluate_portions_on_output_particle(portions):
         plt.clf()
         medians = portions.quantile()
-        print(medians)
         ax = sns.boxplot(data=portions, color="gray")
-        ax.tick_params(labelsize=5)
+        ax.tick_params(labelsize=7)
+        ax.set_ylabel("Impact Rank on Output Particle", fontsize=8)
+        ax.set_xlabel("Fitness Rank", fontsize=8)
