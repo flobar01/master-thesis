@@ -241,6 +241,8 @@ if __name__ == '__main__':
     portions_on_output_particle_ring = []
     ranked_portions_on_output_particle = []
     ranked_portions_on_output_particle_ring = []
+    ranked_improvement = []
+    ranked_improvement_ring = []
 
     for i in range(31):
         run = []
@@ -327,7 +329,6 @@ if __name__ == '__main__':
                 ranks_array[key].append(current_ranks[key])
             global_rank_history.append(current_ranks[pso.global_best_index])
         
-        
         to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
         #if pso_ring.global_best > 2:
         #    continue
@@ -379,6 +380,19 @@ if __name__ == '__main__':
         
         acc_improvs_lbest.append(sorted_norm_improvs_ring[worst_starting_lbest])
         dec_improvs_lbest.append(sorted_norm_improvs1_ring[worst_starting_lbest])
+        ranked_improvs_temp = {f"Rank {i}": 0 for i in all_ranks[0].values()}
+        rank = 10
+        for key in sorted_norm_improvs:
+            ranked_improvs_temp[f"Rank {all_ranks[0][key]}"] = rank
+            rank -= 1
+        ranked_improvement.append(ranked_improvs_temp)
+        
+        ranked_improvs_temp = {f"Rank {i}": 0 for i in all_ranks_ring[0].values()}
+        rank = 10
+        for key in sorted_norm_improvs_ring:
+            ranked_improvs_temp[f"Rank {all_ranks_ring[0][key]}"] = rank
+            rank -= 1
+        ranked_improvement_ring.append(ranked_improvs_temp)
 
     ####################################################################################################    
     ####################################################################################################    
@@ -505,7 +519,6 @@ if __name__ == '__main__':
         portions_on_output_particle.append(on_output_particle)
         
         sorted_portions_on_output = dict(sorted(on_output_particle.items(), key=lambda item: item[1]))
-        
         ranked_portions_temp = {f"Rank {i}": 0 for i in starting_ranks.values()}
         rank = 10
         for key in sorted_portions_on_output:
@@ -578,16 +591,17 @@ if __name__ == '__main__':
                 f.write(f"gbest convergence: {pso.generation_best_found}\n")
                 f.write(f"lbest convergence: {pso_ring.generation_best_found}\n")
             
-            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
-            
-            Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/improvs.png", dpi=300)
             #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, 0, best_improvs_ring, 2, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
             #plt.savefig(f"ranks.png", dpi=250, bbox_inches='tight')
 
             '''Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
             plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
+            
+            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
+            plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
+            
+            Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
+            plt.savefig(f"{folder}/improvs.png", dpi=300)
             
             Evaluation.evaluate_portions_ot(data_portions_ring, highest_portion_index_ring, second_highest_portion_index_ring, pso_ring.global_best_index, False)
             plt.savefig(f"{folder}/portions/portions_ot_ring.png", dpi=250, bbox_inches='tight')
@@ -626,18 +640,25 @@ if __name__ == '__main__':
     portions_on_output_particle_ring_data = pd.DataFrame(data=portions_on_output_particle_ring)
     ranked_portions_on_output_particle_data = pd.DataFrame(data=ranked_portions_on_output_particle)
     ranked_portions_on_output_particle_data_ring = pd.DataFrame(data=ranked_portions_on_output_particle_ring)
-    
+    ranked_improvement_data = pd.DataFrame(data=ranked_improvement)
+    ranked_improvement_data_ring = pd.DataFrame(data=ranked_improvement_ring)
     #Evaluation.evaluate_portions_on_output_particle(portions_on_output_particle_data)
     #plt.savefig(f"evaluation/portions_on_output.png", dpi=250, bbox_inches='tight')
     
-    Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data)
-    plt.savefig(f"evaluation/ranked_portions_gbest.png", dpi=250, bbox_inches='tight')
+    Evaluation.evaluate_portions_on_output_particle(ranked_improvement_data)
+    plt.savefig(f"evaluation/ranked_improvements_gbest.png", dpi=250, bbox_inches='tight')
+    
+    Evaluation.evaluate_portions_on_output_particle(ranked_improvement_data_ring)
+    plt.savefig(f"evaluation/ranked_improvements_lbest.png", dpi=250, bbox_inches='tight')
+    
+    #Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data)
+    #plt.savefig(f"evaluation/ranked_portions_gbest.png", dpi=250, bbox_inches='tight')
     
     #Evaluation.evaluate_portions_on_output_particle(portions_on_output_particle_ring_data)
     #plt.savefig(f"evaluation/portions_on_output_ring.png", dpi=250, bbox_inches='tight')
 
-    Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data_ring)
-    plt.savefig(f"evaluation/ranked_portions_lbest.png", dpi=250, bbox_inches='tight')
+    #Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data_ring)
+    #plt.savefig(f"evaluation/ranked_portions_lbest.png", dpi=250, bbox_inches='tight')
 
     median_for_gbest_acc = np.median(np.array(acc_improvs_gbest))
     median_for_lbest_acc = np.median(np.array(acc_improvs_lbest))
