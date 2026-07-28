@@ -135,16 +135,21 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
                 else:
                     occurences1.update({history.best_idx: 1})
 
+                displacement = part.history[i-1].pos - history.pos
+                #print(np.dot(history.social, displacement))
+                social_alignment = max(0, np.dot(history.social, displacement))
+                cognitive_alignment = max(0, np.dot(history.cognitive, displacement))
 
-                fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + (history.fitness_improvement / params.popsize) * params.c2
-                fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * params.c1
-                fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * params.c1
+                weight_social = np.linalg.norm(history.social) / (np.linalg.norm(history.social) + np.linalg.norm(history.cognitive) + 1e-10)
+                weight_cognitive = np.linalg.norm(history.cognitive) / (np.linalg.norm(history.social) + np.linalg.norm(history.cognitive)+ 1e-10)
+                fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement  * weight_social
+                fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + history.fitness_improvement * weight_social
+                fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * weight_cognitive
+                fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * weight_cognitive
                 
-                current_improvs[history.best_idx] = current_improvs[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + (history.fitness_improvement / params.popsize) * params.c2
-                current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * params.c1
-                current_improvs1[part.index] = current_improvs1[part.index] + history.fitness_improvement * params.c1
+                current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * weight_social
+                current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + history.fitness_improvement * weight_social
+                current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * weight_cognitive
         
         if i > 0:
             total_improvement = sum(map(abs,current_improvs.values()))
@@ -182,18 +187,19 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
     
     processed = flatten_improvs_dict(all_fitness_improvs)
     processed1 = flatten_improvs_dict(all_fitness_improvs1)
+    processed = all_fitness_improvs
+    processed1 = all_fitness_improvs1
     total_improvement = sum(map(abs,fitness_improvements.values()))
     total_improvement1 = sum(map(abs,fitness_improvements1.values()))
 
 
 
     for key in fitness_improvements.keys():
-        norm_fitness_improvs[key] = float(fitness_improvements[key] / total_improvement)
-        norm_fitness_improvs1[key] = float(fitness_improvements1[key] / total_improvement1)
+        norm_fitness_improvs[key] = float(fitness_improvements[key]) #/ total_improvement)
+        norm_fitness_improvs1[key] = float(fitness_improvements1[key])# / total_improvement1)
 
     sorted_norm_improvs = dict(sorted(norm_fitness_improvs.items(), key=lambda item: item[1]))
     sorted_norm_improvs1 = dict(sorted(norm_fitness_improvs1.items(), key=lambda item: item[1]))
-    
     if debug:
         print(f"{pso.global_best_pos} with {pso.global_best} and index {pso.global_best_index}")
         pos = np.array([0.0,0.0])
@@ -297,8 +303,8 @@ if __name__ == '__main__':
         if start_positions is None:
             break
         to_remove, pso, all_fitness_improvs, all_ranks, best_improvs, best_improvs1, all_fitness_improvs1, sorted_norm_improvs, sorted_norm_improvs1, positions_start = run_pso([], True, False, run_number=runs, start_poses=start_positions)
-        #if pso.global_best > 1:
-        #    continue
+        if pso.global_best > 1:
+            continue
         improvs_array = {}
         improvs_array1 = {}
         ranks_array = {}
@@ -572,6 +578,11 @@ if __name__ == '__main__':
                 f.write(f"gbest convergence: {pso.generation_best_found}\n")
                 f.write(f"lbest convergence: {pso_ring.generation_best_found}\n")
             
+            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
+            plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
+            
+            Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
+            plt.savefig(f"{folder}/improvs.png", dpi=300)
             #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, 0, best_improvs_ring, 2, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
             #plt.savefig(f"ranks.png", dpi=250, bbox_inches='tight')
 
@@ -602,12 +613,8 @@ if __name__ == '__main__':
             Evaluation.evaluate_global_fitness(global_fitness_history, global_fitness_history_ring)
             plt.savefig(f"{folder}/fitness.png", dpi=300)
             
-            Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/improvs.png", dpi=300)
             
 
-            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
 
             Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
             plt.savefig(f"{folder}/shared.png", dpi=250)'''

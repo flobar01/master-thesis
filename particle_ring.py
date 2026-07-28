@@ -45,7 +45,7 @@ class Particle:
         self.lbest_portion = self.portion.copy()
         self.lbest_portion_temp = self.portion.copy()
         self.vel_portion    = {index: 0 for index in range(params.popsize)}
-        entry = HistoryEntry(self.pso.generation, self.index, self.pos, np.array([]), np.array([]), np.array([]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best, portion=self.portion.copy())
+        entry = HistoryEntry(self.index, self.pso.generation, self.pos, np.array([0,0]), np.array([0,0]), np.array([0,0]), self.pso.global_best_index, self.pso.global_best_index == self.index, self.pso.global_best_pos, np.array([]), np.array([]), self.fitness, personal_best=self.personal_best, portion=self.portion.copy())
         self.history = np.append(self.history, entry)
         self.stationary = stationary
         self.shared_best = 0
@@ -77,7 +77,7 @@ class Particle:
             #print(f"{self.global_best_pos} {self.global_best_index} {self.index}")
             self.check_fitness()
             last_fitness = self.history[-1].fitness
-            entry = HistoryEntry(self.pso.generation, self.index, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness, portion=self.portion.copy())
+            entry = HistoryEntry(self.index, self.pso.generation, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness, portion=self.portion.copy())
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 
