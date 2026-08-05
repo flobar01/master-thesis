@@ -76,8 +76,9 @@ class Particle:
             #self.clamp()
             #print(f"{self.global_best_pos} {self.global_best_index} {self.index}")
             self.check_fitness()
-            last_fitness = self.history[-1].fitness
-            entry = HistoryEntry(self.index, self.pso.generation, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, last_fitness - self.fitness, portion=self.portion.copy())
+            last_fitness = self.history[self.pso.generation-1].fitness
+            improvement =  np.log(abs(last_fitness) + 1e-10) - np.log(abs(self.fitness) + 1e-10)
+            entry = HistoryEntry(self.index, self.pso.generation, self.pos, inertia, cognitive, social, self.global_best_index, self.global_best_index == self.index, self.pso.global_best_pos, phi1, phi2, self.fitness, self.personal_best, improvement, portion=self.portion.copy())
             self.history = np.append(self.history, entry)
             self.pso.overall_steps += 1
 

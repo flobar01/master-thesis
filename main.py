@@ -205,6 +205,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
         pos = np.array([0.0,0.0])
         for key in pso.particles[pso.global_best_index].portion.keys():
             pos += pso.particles[key].history[0].pos * pso.particles[pso.global_best_index].portion[key]
+        
         #print(total_portions)
         #print(occurences1)
         #print("-------------------------------")
@@ -520,9 +521,13 @@ if __name__ == '__main__':
         
         sorted_portions_on_output = dict(sorted(on_output_particle.items(), key=lambda item: item[1]))
         ranked_portions_temp = {f"Rank {i}": 0 for i in starting_ranks.values()}
+        last_portion = 0
         rank = 10
         for key in sorted_portions_on_output:
-            ranked_portions_temp[key] = rank
+            if sorted_portions_on_output[key] != 0:
+                ranked_portions_temp[key] = rank
+            else:
+                ranked_portions_temp[key] = 10
             rank -= 1
         ranked_portions_on_output_particle.append(ranked_portions_temp)
 
@@ -540,12 +545,17 @@ if __name__ == '__main__':
         ranked_portions_temp = {f"Rank {i}": 0 for i in starting_ranks.values()}
         rank = 10
         for key in sorted_portions_on_output_ring:
-            ranked_portions_temp[key] = rank
+            if sorted_portions_on_output_ring[key] != 0:
+                ranked_portions_temp[key] = rank
+            else:
+                ranked_portions_temp[key] = 10
+
             rank -= 1
         ranked_portions_on_output_particle_ring.append(ranked_portions_temp)
 
         for i in pso_ring.particles:
             shared_best_ring[i.index] = i.shared_best
+
         if not graphical:
             data_ranks = pd.DataFrame.from_dict(ranks_array)
             data_ranks_ring = pd.DataFrame.from_dict(ranks_array_ring)
@@ -567,7 +577,7 @@ if __name__ == '__main__':
                 "data_portions_ring": data_portions_ring, "second_highest_portion_index": second_highest_portion_index, "second_highest_portion_index_ring": second_highest_portion_index_ring, "portions_data": portions_data, "portions_data_ring": portions_data_ring}
 
             standard_pal = sns.color_palette()
-            sns.set_theme(style="darkgrid")
+            sns.set_theme(style="whitegrid")
             folder =  f"evaluation/run{runs+1}"
             #plt.show()
 
@@ -591,14 +601,20 @@ if __name__ == '__main__':
                 f.write(f"gbest convergence: {pso.generation_best_found}\n")
                 f.write(f"lbest convergence: {pso_ring.generation_best_found}\n")
             
+            #Evaluation.evaluate_portions_heatmap(portions_data, starting_ranks)
+            #plt.savefig(f"{folder}/portions/heatmap.png", dpi=250, bbox_inches='tight')
+            
             #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, 0, best_improvs_ring, 2, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
             #plt.savefig(f"ranks.png", dpi=250, bbox_inches='tight')
 
+            #Evaluation.evaluate_improvs(data_improvs_ring, data_improvs_ring, data_improvs1_ring, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
+            #plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
+            
+            #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1_ring, sorted_norm_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
+            #plt.savefig(f"{folder}/improvs.png", dpi=300)
             '''Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
             plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
             
-            Evaluation.evaluate_improvs(data_improvs, data_improvs_ring, data_improvs1, data_improvs1_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
-            plt.savefig(f"{folder}/normed_improvs.png", dpi=300)
             
             Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
             plt.savefig(f"{folder}/improvs.png", dpi=300)
@@ -615,8 +631,6 @@ if __name__ == '__main__':
             Evaluation.evaluate_portions(total_portions_ring)
             plt.savefig(f"{folder}/portions/portions_ring.png", dpi=250)
 
-            Evaluation.evaluate_portions_heatmap(portions_data)
-            plt.savefig(f"{folder}/portions/heatmap.png", dpi=250)
             
             Evaluation.evaluate_portions_heatmap(portions_data_ring)
             plt.savefig(f"{folder}/portions/heatmap_ring.png", dpi=250)
@@ -651,14 +665,14 @@ if __name__ == '__main__':
     Evaluation.evaluate_portions_on_output_particle(ranked_improvement_data_ring)
     plt.savefig(f"evaluation/ranked_improvements_lbest.png", dpi=250, bbox_inches='tight')
     
-    #Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data)
-    #plt.savefig(f"evaluation/ranked_portions_gbest.png", dpi=250, bbox_inches='tight')
+    Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data)
+    plt.savefig(f"evaluation/ranked_portions_gbest.png", dpi=250, bbox_inches='tight')
     
     #Evaluation.evaluate_portions_on_output_particle(portions_on_output_particle_ring_data)
     #plt.savefig(f"evaluation/portions_on_output_ring.png", dpi=250, bbox_inches='tight')
 
-    #Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data_ring)
-    #plt.savefig(f"evaluation/ranked_portions_lbest.png", dpi=250, bbox_inches='tight')
+    Evaluation.evaluate_portions_on_output_particle(ranked_portions_on_output_particle_data_ring)
+    plt.savefig(f"evaluation/ranked_portions_lbest.png", dpi=250, bbox_inches='tight')
 
     median_for_gbest_acc = np.median(np.array(acc_improvs_gbest))
     median_for_lbest_acc = np.median(np.array(acc_improvs_lbest))

@@ -71,14 +71,17 @@ class Evaluation:
 
     def evaluate_ranks(data_ranks, data_ranks_ring, best_improvs, best_improvs_ring, best_improvs1, best_improvs1_ring, pso_best_index, pso_ring_best_index):
         plt.clf()
-        grey_color = "#00000010"
+        grey_color = "#00000030"
         standard_pal = sns.color_palette()
         pal = {index: standard_pal[0] if index == best_improvs else standard_pal[1] if index == pso_best_index else standard_pal[2] if index == best_improvs1 else grey_color for index in data_ranks.columns}
         pal_ring = {index: standard_pal[0] if index == best_improvs_ring else standard_pal[1] if index == pso_ring_best_index else standard_pal[2] if index == best_improvs1_ring else grey_color for index in data_ranks_ring.columns}
 
-        fig, axes = plt.subplots(nrows = 1, figsize=(10,8))
+        line_styles= {str(best_improvs): "--", 
+                    str(best_improvs1): ":",
+                    str(pso_best_index): "-."}
+        fig, axes = plt.subplots(nrows = 1, figsize=(7,5))
         #fig.set_size_inches(12,10)
-        ax = sns.lineplot(data_ranks, palette=pal, dashes=False, legend=False)
+        ax = sns.lineplot(data_ranks, palette=pal, dashes=False)
         #sns.lineplot(data_ranks_ring, ax=axes[1], palette=pal_ring, dashes=False)
         for i in range(1):
             #ax = axes[i]
@@ -92,13 +95,17 @@ class Evaluation:
             for line, label in zip(ax.lines, labels):
                 if label in to_remove:
                     line.set_linewidth(1)
-            
+                else:
+                    line.set_linewidth(1.5)
+                #if label in line_styles:
+                    #line.set_linestyle(line_styles[label])
             if i == 0:
-                filtered = [(h, r'$\bar{I}^{Acc}_g$') if l == str(best_improvs) else (h, r'$\bar{I}^{Dec}_g$') if l == str(best_improvs1) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
+                filtered = [(h, r'Best Fitness') if l == str(best_improvs) else (h, r'2.Best Fitness') if l == str(best_improvs1) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
             else:
                 filtered = [(h, r'$\bar{I}^{Acc}_g$') if l == str(best_improvs_ring) else (h, r'$\bar{I}^{Dec}_g$') if l == str(best_improvs1_ring) else (h, r'$\vec{g}(t)$') if l == str(pso_ring_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
+            filtered[0],filtered[1] = filtered[1],filtered[0]
             handles, labels = zip(*filtered)
-            
+            ax.yaxis.set_inverted(True)
             ax.legend(handles, labels)
             plt.tight_layout()
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
@@ -130,7 +137,7 @@ class Evaluation:
                 if label in to_remove:
                     line.set_linewidth(1)
             if j == 0:
-                filtered = [(h, r'$\bar{I}^{Acc}_g$') if l == str(best_improvs) else (h, r'$\bar{I}^{Dec}_g$') if l == str(best_improvs1) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
+                filtered = [(h, r'$\bar{I}^{Acc}_g$') if l == str(best_improvs) else (h, r'$\bar{I}^{Dis}_g$') if l == str(best_improvs1) else (h, r'$\vec{g}(t)$') if l == str(pso_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
             else:
                 filtered = [(h, r'$\bar{I}^{Acc}_g$') if l == str(best_improvs_ring) else (h, r'$\bar{I}^{Dec}_g$') if l == str(best_improvs1_ring) else (h, r'$\vec{g}(t)$') if l == str(pso_ring_best_index) else (h, l) for h, l in zip(handles, labels) if l not in to_remove]
             handles, labels = zip(*filtered)
@@ -139,12 +146,9 @@ class Evaluation:
             plt.tight_layout()
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
 
-            if j == 0:
-                ax.set_title("GBest")
-            if j == 1:
-                ax.set_title("LBest")
-            if j==1:
-                ax.set_xlabel("Time step")
+            ax.set_title("LBest")
+            ax.set_xlabel("Time step")
+            ax.set_ylabel("Fitness Improvement")
 
     def evaluate_shared(shared_data, sorted_improvs, pso_ring_best_index):
         plt.clf()
@@ -164,10 +168,13 @@ class Evaluation:
         ax = sns.barplot(portions)
         ax.set_yscale('log')
 
-    def evaluate_portions_heatmap(data_portion):
+    def evaluate_portions_heatmap(data_portion, starting_ranks):
         plt.clf()
         plt.figure()
-        ax = sns.heatmap(data_portion, cmap="seismic_r", annot=True, center=0, annot_kws={"fontsize":8})
+        ordered_particles = sorted(starting_ranks, key=starting_ranks.get)
+        ordered_columns = [fr"$x_{{{i}}}(t=0)$" for i in ordered_particles]
+        df_ordered = data_portion[ordered_columns]
+        ax = sns.heatmap(df_ordered, cmap="seismic_r", annot=True, center=0, annot_kws={"fontsize":8})
         ax.tick_params(labelsize=5)
         
     def evaluate_portions_stacked(norm_portions):
@@ -229,5 +236,5 @@ class Evaluation:
         medians = portions.quantile()
         ax = sns.boxplot(data=portions, color="gray")
         ax.tick_params(labelsize=7)
-        ax.set_ylabel("Impact Rank on Output Particle", fontsize=8)
-        ax.set_xlabel("Fitness Rank", fontsize=8)
+        ax.set_ylabel("Impact on Output Particle (Rank)", fontsize=8)
+        ax.set_xlabel("Fitness of Starting Position (Rank)", fontsize=8)
