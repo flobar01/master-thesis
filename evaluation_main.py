@@ -67,5 +67,5 @@ if __name__ == "__main__":
         #Evaluation.evaluate_portions_heatmap(norm_portions_ring)
         #plt.savefig(f"testing/heatmap_ring.png", dpi=250, bbox_inches='tight')
         
-        #Evaluation.evaluate_portions_heatmap(norm_portions)
-        #plt.savefig(f"testing/heatmap.png", dpi=250, bbox_inches='tight')
+        Evaluation.evaluate_portions_heatmap(norm_portions)
+        plt.savefig(f"testing/heatmap.png", dpi=250, bbox_inches='tight')

@@ -601,8 +601,10 @@ if __name__ == '__main__':
                 f.write(f"gbest convergence: {pso.generation_best_found}\n")
                 f.write(f"lbest convergence: {pso_ring.generation_best_found}\n")
             
-            #Evaluation.evaluate_portions_heatmap(portions_data, starting_ranks)
-            #plt.savefig(f"{folder}/portions/heatmap.png", dpi=250, bbox_inches='tight')
+            Evaluation.evaluate_portions_heatmap(portions_data_ring, starting_ranks)
+            plt.savefig(f"{folder}/portions/heatmap_ring.png", dpi=250, bbox_inches='tight')
+            Evaluation.evaluate_portions_heatmap(portions_data, starting_ranks)
+            plt.savefig(f"{folder}/portions/heatmap.png", dpi=250, bbox_inches='tight')
             
             #Evaluation.evaluate_ranks(data_ranks, data_ranks_ring, 0, best_improvs_ring, 2, best_improvs1_ring, pso.global_best_index, pso_ring.global_best_index)
             #plt.savefig(f"ranks.png", dpi=250, bbox_inches='tight')
@@ -632,8 +634,6 @@ if __name__ == '__main__':
             plt.savefig(f"{folder}/portions/portions_ring.png", dpi=250)
 
             
-            Evaluation.evaluate_portions_heatmap(portions_data_ring)
-            plt.savefig(f"{folder}/portions/heatmap_ring.png", dpi=250)
 
             Evaluation.evaluate_portions_stacked(portions_data_ring)
             plt.savefig(f"{folder}/portions/stacked_portions_ring.png", dpi=250) 

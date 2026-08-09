@@ -173,7 +173,8 @@ class Evaluation:
         plt.figure()
         ordered_particles = sorted(starting_ranks, key=starting_ranks.get)
         ordered_columns = [fr"$x_{{{i}}}(t=0)$" for i in ordered_particles]
-        df_ordered = data_portion[ordered_columns]
+        ordered_rows = [fr"$x_{{{i}}}(t=25)$" for i in ordered_particles]
+        df_ordered = data_portion.loc[ordered_rows, ordered_columns]
         ax = sns.heatmap(df_ordered, cmap="seismic_r", annot=True, center=0, annot_kws={"fontsize":8})
         ax.tick_params(labelsize=5)
         
