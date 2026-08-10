@@ -176,7 +176,7 @@ class Evaluation:
         ordered_rows = [fr"$x_{{{i}}}(t=25)$" for i in ordered_particles]
         df_ordered = data_portion.loc[ordered_rows, ordered_columns]
         ax = sns.heatmap(df_ordered, cmap="seismic_r", annot=True, center=0, annot_kws={"fontsize":8})
-        ax.tick_params(labelsize=5)
+        ax.tick_params(labelsize=7)
         
     def evaluate_portions_stacked(norm_portions):
         bottom = np.zeros(len(norm_portions))
@@ -239,3 +239,23 @@ class Evaluation:
         ax.tick_params(labelsize=7)
         ax.set_ylabel("Impact on Output Particle (Rank)", fontsize=8)
         ax.set_xlabel("Fitness of Starting Position (Rank)", fontsize=8)
+
+    def evaluate_on_output_particle(portions):
+        plt.clf()
+        rows = []
+
+        for topology in ["GBest", "LBest"]:
+            for timestep in portions[topology]:
+                for rank, impact in timestep.items():
+                    rows.append({
+                        "Topology": topology,
+                        "Rank": rank,
+                        "Impact": impact
+                    })
+        df = pd.DataFrame(rows)
+        plt.figure(figsize=(10,4))
+        ax = sns.boxplot(data=df, hue="Topology", x="Rank", y="Impact")
+        ax.yaxis.set_inverted(True)
+        sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+        ax.set_ylabel("Impact on Output Particle (Rank)", fontsize=10)
+        ax.set_xlabel("Fitness of Starting Position (Rank)", fontsize=10)
