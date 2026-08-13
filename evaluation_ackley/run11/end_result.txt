@@ -1,0 +1,5 @@
+gbest: 7 with 0.838733225827788
+lbest: 2 with 1.2271495219124482
+[0, 2, 4, 4, 1, 1, 1, 1, 1, 1, 5, 5, 5, 4, 4, 4, 4, 5, 5, 5, 5, 5, 1, 5, 5]
+gbest convergence: 25
+lbest convergence: 25

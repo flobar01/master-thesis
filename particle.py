@@ -90,9 +90,14 @@ class Particle:
 
 
     def fitness_update(self):
-        return self.rosenbrock_fitness()
-        return self.ackley_fitness()
-        return self.circle_fitness()
+        if params.fitness_function == "rosenbrock":
+            return self.rosenbrock_fitness()
+        elif params.fitness_function == "ackley":
+            return self.ackley_fitness()
+        elif params.fitness_function == "rastrigin":
+            return self.rastrigin_fitness()
+        elif params.fitness_function == "sphere":
+            return self.circle_fitness()
         return self.pos[0]
 
     def circle_fitness(self):
@@ -106,6 +111,9 @@ class Particle:
 
     def ackley_fitness(self):
         return -20 * math.exp(-2*math.sqrt(0.5 *(self.pos[0]**2 + self.pos[1]**2))) - math.exp(0.5*(math.cos(2*math.pi*self.pos[0]) + math.cos(2*math.pi*self.pos[1]))) + math.e + 20
+
+    def rastrigin_fitness(self):
+        return 10*2 + (self.pos[0]**2 - 10*math.cos(2*math.pi*self.pos[0]))+ (self.pos[1]**2 - 10*math.cos(2*math.pi*self.pos[1]))
 
     def check_fitness(self):
         new_fitness = self.fitness_update()

@@ -1,0 +1,5 @@
+gbest: 3 with 2.0
+lbest: 3 with 2.0
+[0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+gbest convergence: 0
+lbest convergence: 25

@@ -6,3 +6,4 @@ class params:
     bounds     = 30
     iterations = 25
     dimensions = 2
+    fitness_function = "sphere"

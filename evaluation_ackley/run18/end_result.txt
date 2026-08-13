@@ -1,0 +1,5 @@
+gbest: 9 with 0.5839142710411878
+lbest: 8 with 1.5925372242305436
+[0, 8, 9, 9, 9, 3, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 3, 3, 3, 9, 3, 3, 3, 3, 3]
+gbest convergence: 25
+lbest convergence: 25

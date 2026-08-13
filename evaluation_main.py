@@ -22,8 +22,8 @@ if __name__ == "__main__":
         sorted_norm_improvs = data["sorted_norm_improvs"]
         sorted_norm_improvs_ring = data["sorted_norm_improvs_ring"]
         
-        #Evaluation.evaluate_norm_improvs(sorted_norm_improvs_ring, sorted_norm_improvs1_ring, sorted_norm_improvs1_ring, sorted_norm_improvs_ring, pso_global_best, pso_ring_global_best)
-        #plt.savefig("improvs.png", dpi=300)
+        Evaluation.evaluate_norm_improvs(sorted_norm_improvs_ring, sorted_norm_improvs1_ring, pso_ring_global_best)
+        plt.savefig("testing/improvs_lbest.png", dpi=300)
 
         data_ranks = data["data_ranks"]
         data_ranks_ring = data["data_ranks_ring"]

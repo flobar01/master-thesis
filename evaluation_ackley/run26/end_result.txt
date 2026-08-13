@@ -1,0 +1,5 @@
+gbest: 4 with 0.0
+lbest: 4 with 0.0
+[0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+gbest convergence: 0
+lbest convergence: 25

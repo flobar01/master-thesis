@@ -1,0 +1,2 @@
+median gbest fitness: 20
+median lbest fitness: 21

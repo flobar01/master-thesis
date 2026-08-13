@@ -1,0 +1,5 @@
+gbest: 9 with 0.0
+lbest: 9 with 0.0
+[0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+gbest convergence: 0
+lbest convergence: 25

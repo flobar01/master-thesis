@@ -96,7 +96,7 @@ class PSO:
             p = self.particles[idx]
             p.update()
             if p.fitness < self.global_best:
-                self.global_best_ratio = self.global_best / p.fitness
+                self.global_best_ratio = self.global_best / (p.fitness + 1e-10)
                 self.global_best = p.fitness
                 self.global_best_temp_pos = p.pos
                 self.global_best_temp_index = idx

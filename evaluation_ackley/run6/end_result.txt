@@ -1,0 +1,5 @@
+gbest: 0 with 0.0
+lbest: 0 with 0.0
+[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+gbest convergence: 0
+lbest convergence: 25
