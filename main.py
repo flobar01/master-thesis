@@ -241,7 +241,6 @@ if __name__ == '__main__':
     test_starting_pos = []
     portions_on_output_particle = []
     portions_on_output_particle_ring = []
-    ranked_portions_on_output_particle = []
     ranked_portions_on_output_particle_ring = []
     ranked_improvement = []
     ranked_improvement_ring = []
@@ -309,10 +308,35 @@ if __name__ == '__main__':
         "Ackley": [],
         "Sphere": [],
     }
+    
+    portions_on_output_particle_fitness_struct_lbest ={
+        "Rastrigin": [],
+        "Rosenbrock": [],
+        "Ackley": [],
+        "Sphere": [],
+    }
+
+    portions_on_output_particle_fitness_struct_improv ={
+        "Rastrigin": [],
+        "Rosenbrock": [],
+        "Ackley": [],
+        "Sphere": [],
+    }
+
+    portions_on_output_particle_fitness_struct_improv_lbest ={
+        "Rastrigin": [],
+        "Rosenbrock": [],
+        "Ackley": [],
+        "Sphere": [],
+    }
 
     functions = ["rastrigin", "ackley", "sphere", "rosenbrock"]
     for function in functions:
         params.fitness_function = function
+        ranked_portions_on_output_particle = []
+        ranked_portions_on_output_particle_ring = []
+        ranked_improvement = []
+        ranked_improvement_ring = []
         print(f"function {params.fitness_function}")
         runs = 0
         while runs < 31:
@@ -702,14 +726,27 @@ if __name__ == '__main__':
         ranked_portions_on_output_particle_struct_data = pd.DataFrame(data=portions_on_output_particle_struct)
         ranked_improvement_data = pd.DataFrame(data=ranked_improvement)
         ranked_improvement_data_ring = pd.DataFrame(data=ranked_improvement_ring)
+        print(ranked_portions_on_output_particle[0])
         if params.fitness_function == "rastrigin":
             portions_on_output_particle_fitness_struct["Rastrigin"] = ranked_portions_on_output_particle
+            portions_on_output_particle_fitness_struct_lbest["Rastrigin"] = ranked_portions_on_output_particle_ring
+            portions_on_output_particle_fitness_struct_improv["Rastrigin"] = ranked_improvement
+            portions_on_output_particle_fitness_struct_improv_lbest["Rastrigin"] = ranked_improvement_ring
         if params.fitness_function == "ackley":
             portions_on_output_particle_fitness_struct["Ackley"] = ranked_portions_on_output_particle
+            portions_on_output_particle_fitness_struct_lbest["Ackley"] = ranked_portions_on_output_particle_ring
+            portions_on_output_particle_fitness_struct_improv["Ackley"] = ranked_improvement
+            portions_on_output_particle_fitness_struct_improv_lbest["Ackley"] = ranked_improvement_ring
         if params.fitness_function == "sphere":
             portions_on_output_particle_fitness_struct["Sphere"] = ranked_portions_on_output_particle
+            portions_on_output_particle_fitness_struct_lbest["Sphere"] = ranked_portions_on_output_particle_ring
+            portions_on_output_particle_fitness_struct_improv["Sphere"] = ranked_improvement
+            portions_on_output_particle_fitness_struct_improv_lbest["Sphere"] = ranked_improvement_ring
         if params.fitness_function == "rosenbrock":
             portions_on_output_particle_fitness_struct["Rosenbrock"] = ranked_portions_on_output_particle
+            portions_on_output_particle_fitness_struct_lbest["Rosenbrock"] = ranked_portions_on_output_particle_ring
+            portions_on_output_particle_fitness_struct_improv["Rosenbrock"] = ranked_improvement
+            portions_on_output_particle_fitness_struct_improv_lbest["Rosenbrock"] = ranked_improvement_ring
         '''df_long = df_fitness.melt(
             id_vars=["value_set", "run"],
             value_vars=["GBest", "LBest"],
@@ -787,11 +824,23 @@ if __name__ == '__main__':
         #    f.write(f"median lbest acc: {index_median_lbest_acc}\n")
         #    f.write(f"median lbest dec: {index_median_lbest_dec}\n")
             #plt.show()'''
-    print(f"{portions_on_output_particle_fitness_struct}")
     df_fitness = pd.DataFrame(portions_on_output_particle_fitness_struct)
+    df_fitness_lbest = pd.DataFrame(portions_on_output_particle_fitness_struct_lbest)
+    df_fitness_improv = pd.DataFrame(portions_on_output_particle_fitness_struct_improv)
+    df_fitness_improv_lbest = pd.DataFrame(portions_on_output_particle_fitness_struct_improv_lbest)
 
     Evaluation.evaluate_fitness_ranked(df_fitness)
-    plt.show()
+    plt.savefig("ranks_improvement_fitness.png", dpi=250, bbox_inches='tight')
+    
+    Evaluation.evaluate_fitness_ranked(df_fitness_lbest)
+    plt.savefig("ranks_improvement_fitness_lbest.png", dpi=250, bbox_inches='tight')
+    
+    Evaluation.evaluate_fitness_ranked(df_fitness_improv)
+    plt.savefig("ranks_improvement_improv.png", dpi=250, bbox_inches='tight')
+    
+    Evaluation.evaluate_fitness_ranked(df_fitness_improv_lbest)
+    plt.savefig("ranks_improvement_improv_lbest.png", dpi=250, bbox_inches='tight')
+
     if graphical:
         #plt.ion()
         plt.close('all')

@@ -245,7 +245,7 @@ class Evaluation:
     def evaluate_fitness_ranked(portions):
         plt.clf()
         rows = []
-        for topology in ["Rastrigin", "Rosenbrock", "Ackley", "Sphere"]:
+        for topology in ["Rosenbrock", "Rastrigin", "Ackley", "Sphere"]:
             for timestep in portions[topology]:
                 for rank, impact in timestep.items():
                     rows.append({
@@ -258,6 +258,6 @@ class Evaluation:
         plt.figure(figsize=(10,4))
         ax = sns.boxplot(data=df, hue="Fitness Function", x="Rank", y="Impact")
         ax.yaxis.set_inverted(True)
-        sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 1), ncol=4)
         ax.set_ylabel("Impact on Output Particle (Rank)", fontsize=10)
         ax.set_xlabel("Fitness of Starting Position (Rank)", fontsize=10)
