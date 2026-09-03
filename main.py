@@ -483,21 +483,21 @@ if __name__ == '__main__':
                         
             all_portion_changes.append(current_portion_changes)
 
-        all_portion_changes_ring = []
-        for i in range(params.iterations):
-            current_portion_changes = {p.index: 0 for p in pso_ring.particles}
-            for p in pso_ring.particles:
-                current_portion = p.history[i].portion.copy()
-                if i > 0:
-                    last_portion = p.history[i-1].portion.copy()
-                    for key in current_portion.keys():
-                        current_portion_changes[key] = current_portion_changes[key] + (current_portion[key] - last_portion[key])
-                else:
-                    for key in current_portion.keys():
-                        current_portion_changes[key] = current_portion_changes[key] + current_portion[key]
-            for key in current_portion_changes:
-                current_portion_changes[key] = current_portion_changes[key] / params.popsize
-            all_portion_changes_ring.append(current_portion_changes)
+            all_portion_changes_ring = []
+            for i in range(params.iterations):
+                current_portion_changes = {p.index: 0 for p in pso_ring.particles}
+                for p in pso_ring.particles:
+                    current_portion = p.history[i].portion.copy()
+                    if i > 0:
+                        last_portion = p.history[i-1].portion.copy()
+                        for key in current_portion.keys():
+                            current_portion_changes[key] = current_portion_changes[key] + (current_portion[key] - last_portion[key])
+                    else:
+                        for key in current_portion.keys():
+                            current_portion_changes[key] = current_portion_changes[key] + current_portion[key]
+                #for key in current_portion_changes:
+                #    current_portion_changes[key] = current_portion_changes[key] / params.popsize
+                all_portion_changes_ring.append(current_portion_changes)
 
         
         total_portions_ring = {part.index: 0 for part in pso_ring.particles}

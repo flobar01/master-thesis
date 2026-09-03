@@ -34,7 +34,7 @@ class Evaluation:
         axes_left = left.subplots(1, 1)
 
         right = subfigs[1]
-        right.suptitle("Decreasing Impact Metric")
+        right.suptitle("Discounting Impact Metric")
         axes_right = right.subplots(1, 1)
         x=list(sorted_norm_improvs.values())
         x1 = list(sorted_norm_improvs1.values())
@@ -44,6 +44,11 @@ class Evaluation:
         # Plot
         sns.barplot(sorted_norm_improvs,      ax=axes_left, palette=pal,x=y, y=x, hue=y, legend=False)
         sns.barplot(sorted_norm_improvs1, ax=axes_right, palette=pal1, x=y1, y=x1, hue=y1, legend=False)
+        axes_left.set_xlabel("Index of Particle")
+        axes_right.set_xlabel("Index of Particle")
+        
+        axes_left.set_ylabel("Sum of Impact")
+        axes_right.set_ylabel("Sum of Impact")
         #axes_left.set_ylim(0,0.21)
         #axes_right.set_ylim(0,0.21)
         #sns.barplot(sorted_norm_improvs1,      ax=axes_right[0], palette=pal1, x=y1,y=x1, hue=y1, legend=False)
@@ -61,7 +66,6 @@ class Evaluation:
                     ax.set_title(f"GBest")
                 if j == 1:
                     ax.set_title(f"LBest")
-                #ax.set_xlabel("Index of particle")
 
     def evaluate_ranks(data_ranks, best_improvs, best_improvs1, pso_best_index):
         plt.clf()
@@ -101,12 +105,12 @@ class Evaluation:
         
     def evaluate_improvs(data_improvs, data_improvs1, best_improvs, best_improvs1, pso_best_index, is_gbest):
         plt.clf()
-        grey_color = "#00000010"
+        grey_color = "#00000040"
         standard_pal = sns.color_palette()
         pal = {index: standard_pal[0] if index == best_improvs else standard_pal[1] if index == pso_best_index else standard_pal[2] if index==best_improvs1 else grey_color for index in data_improvs.columns}
         pal1 = {index: standard_pal[0] if index == best_improvs1 else standard_pal[1] if index == pso_best_index else grey_color for index in data_improvs1.columns}
 
-        fig, axes = plt.subplots(nrows = 1, figsize=(12.07, 7.2))
+        fig, axes = plt.subplots(nrows = 1)
         #plt.subplots_adjust(bottom=0.1, top=0.9, wspace=0.4, hspace=0.4)
         #plt.yscale("symlog", linthresh=10)
         ax = sns.lineplot(data_improvs, palette=pal, dashes=False)
@@ -124,12 +128,12 @@ class Evaluation:
 
             plt.tight_layout()
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-            if is_gbest:
-                ax.set_title("GBest")
-            else:
-                ax.set_title("LBest")
+            #if is_gbest:
+            #    ax.set_title("GBest")
+            #else:
+            #    ax.set_title("LBest")
             ax.set_xlabel("Time step")
-            ax.set_ylabel("Fitness Improvement")
+            ax.set_ylabel("Sum of Fitness Improvement")
 
     def evaluate_shared(shared_data, sorted_improvs, pso_ring_best_index):
         plt.clf()
@@ -183,11 +187,11 @@ class Evaluation:
     
     def evaluate_portions_ot(data_portion, highest_portion_index, second_highest_portion_index, pso_best_index, is_gbest):
         plt.clf()
-        grey_color = "#00000010"
+        grey_color = "#00000040"
         standard_pal = sns.color_palette()
         pal = {index: standard_pal[0] if index == highest_portion_index else standard_pal[1] if index == pso_best_index else standard_pal[2] if index == second_highest_portion_index else grey_color for index in data_portion.columns}
 
-        fig, axes = plt.subplots(nrows = 1, figsize=(10,8))
+        fig, axes = plt.subplots(nrows = 1)
         #fig.set_size_inches(12,10)
         ax = sns.lineplot(data_portion, palette=pal, dashes=False)
         #sns.lineplot(data_ranks_ring, ax=axes[1], palette=pal_ring, dashes=False)
@@ -209,7 +213,7 @@ class Evaluation:
             ax.legend(handles, labels)
             plt.tight_layout()
             sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-            ax.set_ylabel("Sum of coefficients")
+            ax.set_ylabel("Sum of Coefficients")
             ax.set_xlabel("Time Steps")
 
 
