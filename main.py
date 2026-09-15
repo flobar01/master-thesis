@@ -1,7 +1,7 @@
 from particle import Particle
 import numpy as np
 from pso import PSO
-from pso_ring import PSO_Ring
+from pso import PSO_Ring
 from os import environ
 import os
 import math
@@ -183,7 +183,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
             if occurences[i] == 0 and len(to_remove) < MAX_TO_REMOVE:
                 to_remove.append(i)
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
-        np.save(f"saves_{params.fitness_function}/start_pos_{run_number}", start_pos)
+        #np.save(f"saves_{params.fitness_function}/start_pos_{run_number}", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
     
     processed = flatten_improvs_dict(all_fitness_improvs)
@@ -236,7 +236,7 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
 if __name__ == '__main__':
     debug = True
     runs = 0
-    graphical = not True
+    graphical = False
     value_sets = [[0.5, 1.4, 1.4], [0.5, 1.9, 1.9], [0.7, 1.4, 1.4], [0.7, 1.9, 1.9]]
     test_starting_pos = []
     portions_on_output_particle = []
@@ -309,8 +309,8 @@ if __name__ == '__main__':
         params.c1 = values[1]
         params.c2 = values[2]
         start_positions = []
-        #if os.path.exists(f"saves_{params.fitness_function}/start_pos_{runs}.npy"):
-        #    start_positions = np.load(f"saves_{params.fitness_function}/start_pos_{runs}.npy")
+        if os.path.exists(f"saves_{params.fitness_function}/start_pos_{runs}.npy"):
+            start_positions = np.load(f"saves_{params.fitness_function}/start_pos_{runs}.npy")
         if len(start_positions) == 0:
             for i in range(params.popsize):
                 pos = []
@@ -347,8 +347,8 @@ if __name__ == '__main__':
             global_rank_history.append(current_ranks[pso.global_best_index])
         
         to_remove_ring, pso_ring, all_fitness_improvs_ring, all_ranks_ring, best_improvs_ring, best_improvs1_ring, all_fitness_improvs1_ring, sorted_norm_improvs_ring, sorted_norm_improvs1_ring, positions_start = run_pso([], False, True, start_poses=positions_start)
-        if pso_ring.global_best > 2:
-            continue
+        #if pso_ring.global_best > 2:
+        #    continue
         improvs_array_ring = {}
         improvs_array_ring1 = {}
         ranks_array_ring = {}
@@ -622,7 +622,7 @@ if __name__ == '__main__':
                 f.write(f"gbest convergence: {pso.generation_best_found}\n")
                 f.write(f"lbest convergence: {pso_ring.generation_best_found}\n")
             
-            Evaluation.evaluate_portions_heatmap(portions_data_ring, starting_ranks)
+            '''Evaluation.evaluate_portions_heatmap(portions_data_ring, starting_ranks)
             plt.savefig(f"{folder}/portions/heatmap_ring.png", dpi=250, bbox_inches='tight')
 
             Evaluation.evaluate_portions_heatmap(portions_data, starting_ranks)
@@ -678,7 +678,7 @@ if __name__ == '__main__':
 
 
             #Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
-            #plt.savefig(f"{folder}/shared.png", dpi=250)
+            #plt.savefig(f"{folder}/shared.png", dpi=250) '''
 
             plt.close('all')
         runs += 1
@@ -798,7 +798,7 @@ if __name__ == '__main__':
                     y_pos.append(part.index)
                 current_improvs = all_fitness_improvs[i]
                 if part.index == 1 or part.index == 0 or part.index == 2:
-                    ax.text(current[0]-0.2, current[1]-0.2, str(part.index), fontsize=9)
+                    ax.text(current[0]-0.15, current[1]-0.2, str(part.index), fontsize=15)
                 """if len(current) > 1:
                     ax.text(current[0], current[1], str(part.index), fontsize=9)
                 else:
@@ -807,18 +807,18 @@ if __name__ == '__main__':
                     improvs.append(current_improvs[part.index])
                 else:
                     improvs.append(0)
-            ax.set_xlim(-1,8.4)
-            ax.set_ylim(-3,4.4)
+            ax.set_xlim(-4,8)
+            ax.set_ylim(-4,7)
             #ax.scatter(x_pos, y_pos, c=improvs, cmap="RdYlGn", norm=norm)
-            ax.scatter(x_pos, y_pos, color="green")
-            ax.set_title(f"Time step {i}")
+            ax.scatter(x_pos, y_pos, color="red", s=150)
+            ax.set_title(f"Time Step {i}")
             if len(current) > 1:
                 #ax.scatter(pso.global_best_pos[0], pso.global_best_pos[1], color="blue")
-                ax.scatter(0, 0, color="blue")
+                ax.scatter(0, 0, color="blue", marker='^', s=100)
 
 
         ani = animation.FuncAnimation(fig, update, frames=params.iterations, interval=500, repeat=False)
-        save_name = f"overtaking_behaviour.gif"
-        #ani.save(save_name, writer="ffmpeg", dpi=500)
+        save_name = f"overtaking_behaviour.mp4"
+        ani.save(save_name, writer="ffmpeg", dpi=250)
         #plt.ioff()
         plt.show()
