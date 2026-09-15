@@ -79,8 +79,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
     histories  = []
     start_pos  = []
     end_pos    = []
-    occurences = {}
-    occurences1 = {}
     fitness_improvements = {part.index: 0 for part in pso.particles}
     fitness_improvements1 = {part.index: 0 for part in pso.particles}
 
@@ -91,13 +89,8 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
     ranks = {}
     to_remove  = []
     positions_start = []
-    weight_social = 0.7
-    weight_cognitive = 0.3
     for p in pso.particles:
         positions_start.append(p.pos)
-    for i in range(params.popsize):
-        occurences[i] = 0
-        occurences1[i] = 0
     steps = 0
     stepsWithoutImprove = 0
     last_global_best = np.array([1000,1000])
@@ -131,10 +124,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
                 history = part.history[i]
                 history_best = pso.particles[history.best_idx].history[i]
                 fitness_particles[part.index] = history.fitness
-                if history.best_idx in occurences1:
-                    occurences1[history.best_idx] = occurences1[history.best_idx]+1
-                else:
-                    occurences1.update({history.best_idx: 1})
 
                 displacement = part.history[i-1].pos - history.pos
                 #print(np.dot(history.social, displacement))
@@ -143,14 +132,17 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
 
                 weight_social = np.linalg.norm(history.social) / (np.linalg.norm(history.social) + np.linalg.norm(history.cognitive) + 1e-10)
                 weight_cognitive = np.linalg.norm(history.cognitive) / (np.linalg.norm(history.social) + np.linalg.norm(history.cognitive)+ 1e-10)
-                fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + history.fitness_improvement  * weight_social
-                fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + history.fitness_improvement * weight_social
-                fitness_improvements[part.index] = (fitness_improvements[part.index]) + history.fitness_improvement * weight_cognitive
-                fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + history.fitness_improvement * weight_cognitive
+
+                social_improvement = history.fitness_improvement  * weight_social
+                cognitive_improvement = history.fitness_improvement * weight_cognitive
+                fitness_improvements[history.best_idx] = fitness_improvements[history.best_idx] + social_improvement
+                fitness_improvements1[history.best_idx] = (fitness_improvements1[history.best_idx]) + social_improvement
+                fitness_improvements[part.index] = (fitness_improvements[part.index]) + cognitive_improvement
+                fitness_improvements1[part.index] = (fitness_improvements1[part.index]) + cognitive_improvement
                 
-                current_improvs[history.best_idx] = current_improvs[history.best_idx] + history.fitness_improvement * weight_social
+                current_improvs[history.best_idx] = current_improvs[history.best_idx] + social_improvement
                 current_improvs1[history.best_idx] = current_improvs1[history.best_idx] + history.fitness_improvement * weight_social
-                current_improvs[part.index] = current_improvs[part.index] + history.fitness_improvement * weight_cognitive
+                current_improvs[part.index] = current_improvs[part.index] + cognitive_improvement
         
         if i > 0:
             total_improvement = sum(map(abs,current_improvs.values()))
@@ -179,15 +171,11 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
         norm_fitness_improvs1 = {}
     sorted_ranks = dict(sorted(ranks.items(), key=lambda item: item[1]))
     if first_run and debug:
-        for i in range(len(occurences)):
-            if occurences[i] == 0 and len(to_remove) < MAX_TO_REMOVE:
-                to_remove.append(i)
+        pass
         #start_pos_analysis(occurences, to_remove, histories, start_pos)
         #np.save(f"saves_{params.fitness_function}/start_pos_{run_number}", start_pos)
         #end_pos_analysis(occurences, to_remove, histories, end_pos)
     
-    processed = flatten_improvs_dict(all_fitness_improvs)
-    processed1 = flatten_improvs_dict(all_fitness_improvs1)
     processed = all_fitness_improvs
     processed1 = all_fitness_improvs1
     total_improvement = sum(map(abs,fitness_improvements.values()))
@@ -208,8 +196,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
             pos += pso.particles[key].history[0].pos * pso.particles[pso.global_best_index].portion[key]
         
         #print(total_portions)
-        #print(occurences1)
-        #print("-------------------------------")
         #print(sorted_norm_improvs)
         #print(pso.particles[0].portion)
         #print("---------------")
@@ -227,7 +213,6 @@ def run_pso(to_remove, first_run, using_ring, start_poses=[], run_number=0):
         #print(df)
         #print("overall steps = ", pso.overall_steps)
         #print("-------------------------------------------------------------------------")
-    highest_occur = max(occurences, key=occurences.get)
     best_part = pso.particles[pso.global_best_index].history
     best_improv = list(sorted_norm_improvs)[-1]
     best_improv1 = list(sorted_norm_improvs1)[-1]
@@ -628,6 +613,12 @@ if __name__ == '__main__':
             Evaluation.evaluate_portions_heatmap(portions_data, starting_ranks)
             plt.savefig(f"{folder}/portions/heatmap.png", dpi=250, bbox_inches='tight')
             
+            Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
+            plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
+
+            Evaluation.evaluate_portions_ot(data_portions_ring, highest_portion_index_ring, second_highest_portion_index_ring, pso_ring.global_best_index, False)
+            plt.savefig(f"{folder}/portions/portions_ot_ring.png", dpi=250, bbox_inches='tight')'''
+            
             Evaluation.evaluate_ranks(data_ranks, best_particles[0], best_particles[1], pso.global_best_index)
             plt.savefig(f"{folder}/ranks_gbest.png", dpi=250, bbox_inches='tight')
             
@@ -646,11 +637,6 @@ if __name__ == '__main__':
             Evaluation.evaluate_norm_improvs(sorted_norm_improvs_ring, sorted_norm_improvs1_ring, pso_ring.global_best_index)
             plt.savefig(f"{folder}/improvs_lbest.png", dpi=300, bbox_inches='tight')
             
-            Evaluation.evaluate_portions_ot(data_portions, highest_portion_index, second_highest_portion_index, pso.global_best_index, True)
-            plt.savefig(f"{folder}/portions/portions_ot.png", dpi=250, bbox_inches='tight')
-
-            Evaluation.evaluate_portions_ot(data_portions_ring, highest_portion_index_ring, second_highest_portion_index_ring, pso_ring.global_best_index, False)
-            plt.savefig(f"{folder}/portions/portions_ot_ring.png", dpi=250, bbox_inches='tight')
             
             
             #Evaluation.evaluate_norm_improvs(sorted_norm_improvs1, sorted_norm_improvs1_ring, sorted_norm_improvs, sorted_norm_improvs_ring, pso.global_best_index, pso_ring.global_best_index)
@@ -678,7 +664,7 @@ if __name__ == '__main__':
 
 
             #Evaluation.evaluate_shared(shared_data, sorted_norm_improvs_ring, pso_ring.global_best_index)
-            #plt.savefig(f"{folder}/shared.png", dpi=250) '''
+            #plt.savefig(f"{folder}/shared.png", dpi=250)
 
             plt.close('all')
         runs += 1
