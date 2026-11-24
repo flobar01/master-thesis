@@ -5,7 +5,7 @@ This is a Framework to investigate the impact of different particles on the othe
 <summary><b>Content</b></summary>
   
 - `/saves_*`
-  - simulated runs are saved into that folder so runs don't have to be redone multiple times
+  - starting positions of the simulated runs are saved into that folder so not all runs have to be redone and important runs are saved
   - saves time while evaluating
 - `/evaluation_*`
   - multiple different evaluations that are already done 
